@@ -52,16 +52,27 @@ describe('clearing', () => {
 		expect(loadTextContent('csv')).toBe('b');
 	});
 
-	it('clearStoredContent wipes documents but keeps settings', () => {
+	it('clearStoredContent keeps only theme, API key and model', () => {
 		saveTextContent('md', 'a');
 		saveFileContent('pdf', 'x.pdf', new Uint8Array([1]));
 		localStorage.setItem('preview:gemini-key', 'secret');
+		localStorage.setItem('preview:gemini-model', 'gemini-2.5-pro');
 		localStorage.setItem('preview:theme', 'dracula');
+		localStorage.setItem('preview:dark', '1');
+		localStorage.setItem('preview:colors', '{}');
+		localStorage.setItem('preview:some-future-cache', 'junk');
+		localStorage.setItem('unrelated-app', 'not ours — leave alone');
 		clearStoredContent();
 		expect(loadTextContent('md')).toBeNull();
 		expect(loadFileContent('pdf')).toBeNull();
+		expect(localStorage.getItem('preview:some-future-cache')).toBeNull();
 		expect(localStorage.getItem('preview:gemini-key')).toBe('secret');
+		expect(localStorage.getItem('preview:gemini-model')).toBe('gemini-2.5-pro');
 		expect(localStorage.getItem('preview:theme')).toBe('dracula');
+		expect(localStorage.getItem('preview:dark')).toBe('1');
+		expect(localStorage.getItem('preview:colors')).toBe('{}');
+		// keys from other apps on a shared origin are untouched
+		expect(localStorage.getItem('unrelated-app')).toBe('not ours — leave alone');
 	});
 });
 

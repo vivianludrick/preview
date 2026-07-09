@@ -76,13 +76,25 @@ export function localUsageBytes(): number {
 	return total;
 }
 
-/** wipe stored documents + theme cache (keeps the API key and theme choice) */
+/** settings that survive "Clear cached data": theme + AI configuration */
+const KEEP_ON_CLEAR = new Set([
+	'preview:theme',
+	'preview:dark',
+	'preview:colors',
+	'preview:gemini-key',
+	'preview:gemini-model'
+]);
+
+/**
+ * Wipe every preview:* key except the theme and AI settings. Only touches
+ * this app's keys — the origin may be shared (e.g. github.io pages).
+ */
 export function clearStoredContent(): void {
 	if (!browser) return;
 	const doomed: string[] = [];
 	for (let i = 0; i < localStorage.length; i++) {
 		const key = localStorage.key(i);
-		if (key?.startsWith(CONTENT_PREFIX)) doomed.push(key);
+		if (key?.startsWith('preview:') && !KEEP_ON_CLEAR.has(key)) doomed.push(key);
 	}
 	doomed.forEach((key) => localStorage.removeItem(key));
 }

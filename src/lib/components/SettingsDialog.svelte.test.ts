@@ -77,15 +77,19 @@ describe('SettingsDialog', () => {
 		expect(values.length).toBeGreaterThanOrEqual(13);
 	});
 
-	it('clear cached data removes saved documents but keeps the key and theme', async () => {
+	it('clear cached data keeps only the theme, key and model', async () => {
 		saveTextContent('md', 'my doc');
 		setGeminiKey('keepme');
+		setGeminiModel('gemini-2.5-pro');
 		localStorage.setItem('preview:theme', 'dracula');
+		localStorage.setItem('preview:legacy-cache', 'junk');
 		await open();
 		await userEvent.click(screen.getByRole('button', { name: /clear cached data/i }));
 		await tick();
 		expect(loadTextContent('md')).toBeNull();
+		expect(localStorage.getItem('preview:legacy-cache')).toBeNull();
 		expect(localStorage.getItem('preview:gemini-key')).toBe('keepme');
+		expect(localStorage.getItem('preview:gemini-model')).toBe('gemini-2.5-pro');
 		expect(localStorage.getItem('preview:theme')).toBe('dracula');
 	});
 

@@ -191,7 +191,7 @@
 				<h3 class="flex items-center gap-1.5 text-sm font-medium">
 					<HardDrive size={15} class="text-[var(--c-accent)]" aria-hidden="true" /> Storage
 					<InfoTip
-						text="“Clear cached data” removes locally saved documents and the offline cache. Theme choice and API key are kept."
+						text="“Clear cached data” removes everything stored by this app — saved documents and the offline cache — keeping only your theme, Gemini API key and model choice."
 					/>
 				</h3>
 				<div class="rounded-lg border border-[var(--c-border)] bg-[var(--c-surface)] px-3 py-2 text-sm">
