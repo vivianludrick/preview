@@ -2,7 +2,7 @@
  * Minimal Gemini client. Only ever called on an explicit user click of the AI
  * button, with the key the user stored in Settings — never automatically.
  */
-const MODEL = 'gemini-2.5-flash';
+const MODEL = 'gemini-3.5-flash';
 
 export async function generate(apiKey: string, text: string): Promise<string> {
 	const res = await fetch(

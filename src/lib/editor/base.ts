@@ -40,7 +40,10 @@ const theme = EditorView.theme({
 	'&.cm-focused': { outline: 'none' },
 	'.cm-scroller': {
 		fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
-		lineHeight: '1.6',
+		// integer pixel value on purpose: a fractional line height (1.6 × 14px
+		// = 22.4px) puts cursor/selection layers on subpixel boundaries, which
+		// makes drawSelection jitter when selecting or moving the cursor
+		lineHeight: '22px',
 		overflow: 'auto'
 	},
 	'.cm-content': { padding: '12px 0', caretColor: 'var(--c-fg)' },

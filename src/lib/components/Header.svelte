@@ -12,6 +12,9 @@
 		const segment = ($page.route.id ?? '').split('/').filter(Boolean)[0];
 		return registry.some((p) => p.ext === segment) ? segment : null;
 	});
+	// the homepage is itself an (HTML-previewer) document, so it gets the
+	// same view-mode + share controls as the previewer pages
+	const isHome = $derived($page.route.id === '/');
 
 	let settingsOpen = $state(false);
 </script>
@@ -41,7 +44,7 @@
 		{/if}
 	</span>
 	<div class="flex-1"></div>
-	{#if ext}
+	{#if ext || isHome}
 		<ViewModeToggle />
 		<button
 			type="button"

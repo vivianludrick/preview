@@ -47,6 +47,11 @@
 		setTimeout(() => (keySaved = false), 1500);
 	}
 
+	function removeKey() {
+		setGeminiKey('');
+		keyDraft = '';
+	}
+
 	async function clearCache() {
 		clearStoredContent();
 		await clearOfflineCache();
@@ -105,6 +110,17 @@
 					>
 						{#if keySaved}<Check size={14} aria-hidden="true" /> Saved{:else}Save{/if}
 					</button>
+					{#if $geminiKey}
+						<button
+							type="button"
+							aria-label="Remove API key"
+							title="Remove the API key from this browser"
+							onclick={removeKey}
+							class="flex items-center rounded-lg border border-[var(--c-border)] bg-[var(--c-surface)] px-2.5 py-2 text-sm text-red-500 hover:border-red-500"
+						>
+							<Trash2 size={14} aria-hidden="true" />
+						</button>
+					{/if}
 				</div>
 				<p class="text-xs text-[var(--c-muted)]">
 					Stored only in this browser's localStorage and sent only to Google's Gemini API when you

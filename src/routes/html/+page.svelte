@@ -106,7 +106,7 @@
 				}}
 			></textarea>
 			<div bind:this={editorHost} class="h-full {editorReady ? '' : 'hidden'}"></div>
-			<EditorChrome view={editorView} />
+			<EditorChrome view={editorView} filename="page.html" />
 		</div>
 	{/snippet}
 	{#snippet preview()}
