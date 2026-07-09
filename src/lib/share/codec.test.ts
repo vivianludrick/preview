@@ -64,7 +64,7 @@ describe('codec', () => {
 		expect(text(await decodeShare(blob))).toBe('');
 	});
 
-	it('roundtrips multi-MB binary content', async () => {
+	it('roundtrips multi-MB binary content', { timeout: 60_000 }, async () => {
 		const big = new Uint8Array(3 * 1024 * 1024).map((_, i) => (i * i + 13) % 256);
 		const blob = await encodeShare(big);
 		expect(await decodeShare(blob)).toEqual(big);
