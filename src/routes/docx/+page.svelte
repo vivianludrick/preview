@@ -10,6 +10,7 @@
 	import UploadPanel from '$lib/components/UploadPanel.svelte';
 	import { viewMode, shareHandler } from '$lib/stores/view';
 	import { PromptController } from '$lib/share/prompt.svelte';
+	import { receiveShared } from '$lib/share/receive';
 	import { saveFileContent, loadFileContent } from '$lib/storage';
 
 	const EXT = 'docx';
@@ -70,19 +71,18 @@
 			}
 			viewMode.set('preview');
 			loading = true;
-			try {
-				const codec = await import('$lib/share/codec');
-				const bytes = await codec.decodeShareInteractive(data, prompts.prompt);
-				if (destroyed) return;
-				if (bytes === null) {
-					loading = false;
-					error = 'Password required to view this document. Reload the page to try again.';
-					return;
-				}
-				await loadBytes(bytes, 'shared.docx');
-			} catch (e) {
+			const received = await receiveShared(data, prompts.prompt);
+			if (destroyed) return;
+			if (received.status === 'ok') {
+				await loadBytes(received.bytes, 'shared.docx');
+			} else {
 				loading = false;
-				error = e instanceof Error ? e.message : 'Could not open this share link.';
+				error =
+					received.status === 'cancelled'
+						? 'Password required to view this document. Reload the page to try again.'
+						: received.status === 'error'
+							? received.message
+							: '';
 			}
 		})();
 

@@ -66,7 +66,6 @@ export async function decodeShareInteractive(
 	throw new WrongPasswordError('Too many wrong attempts.');
 }
 
-/** decoded bytes → text (markdown & friends) */
-export function bytesToText(bytes: Uint8Array): string {
-	return new TextDecoder().decode(bytes);
-}
+// re-exported for existing callers; lives in text.ts so eager importers
+// don't pull the whole codec (fflate + crypto) into their bundle
+export { bytesToText, textToBytes } from './text';

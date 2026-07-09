@@ -10,6 +10,9 @@
 	import EditorChrome from '$lib/components/EditorChrome.svelte';
 	import { viewMode, shareHandler } from '$lib/stores/view';
 	import { PromptController } from '$lib/share/prompt.svelte';
+	import { receiveShared } from '$lib/share/receive';
+	import { bytesToText } from '$lib/share/text';
+	import { debounce } from '$lib/debounce';
 	import { saveTextContent, loadTextContent } from '$lib/storage';
 	import { defaultHomeDoc } from '$lib/previewers/home/sample';
 	import type { EditorView } from '$lib/editor/base';
@@ -18,9 +21,10 @@
 	// layout and view modes, edits persist locally — but it always lands in
 	// preview mode so it reads as a landing page first.
 	const EXT = 'home';
+	const DEFAULT_DOC = defaultHomeDoc(base);
 
-	let content = $state(defaultHomeDoc(base));
-	let rendered = $state(defaultHomeDoc(base));
+	let content = $state(DEFAULT_DOC);
+	let rendered = $state(DEFAULT_DOC);
 	let previewReady = $state(false);
 	let receiveError = $state('');
 	let receiveCancelled = $state(false);
@@ -32,17 +36,8 @@
 
 	const prompts = new PromptController();
 
-	let renderTimer: ReturnType<typeof setTimeout> | undefined;
-	function scheduleRender() {
-		clearTimeout(renderTimer);
-		renderTimer = setTimeout(() => (rendered = content), 250);
-	}
-
-	let saveTimer: ReturnType<typeof setTimeout> | undefined;
-	function schedulePersist() {
-		clearTimeout(saveTimer);
-		saveTimer = setTimeout(() => saveTextContent(EXT, content), 400);
-	}
+	const scheduleRender = debounce(() => (rendered = content), 250);
+	const schedulePersist = debounce(() => saveTextContent(EXT, content), 400);
 
 	function onEdit(value: string) {
 		content = value;
@@ -56,21 +51,12 @@
 		let destroyed = false;
 
 		(async () => {
-			const data = $page.url.searchParams.get('data');
-			if (data) {
-				try {
-					const codec = await import('$lib/share/codec');
-					const bytes = await codec.decodeShareInteractive(data, prompts.prompt);
-					if (destroyed) return;
-					if (bytes === null) {
-						receiveCancelled = true;
-					} else {
-						content = codec.bytesToText(bytes);
-					}
-				} catch (e) {
-					receiveError = e instanceof Error ? e.message : 'Could not open this share link.';
-				}
-			} else {
+			const received = await receiveShared($page.url.searchParams.get('data'), prompts.prompt);
+			if (destroyed) return;
+			if (received.status === 'ok') content = bytesToText(received.bytes);
+			else if (received.status === 'cancelled') receiveCancelled = true;
+			else if (received.status === 'error') receiveError = received.message;
+			else {
 				const stored = loadTextContent(EXT);
 				if (stored !== null && stored.trim()) content = stored;
 			}
@@ -86,8 +72,8 @@
 
 		return () => {
 			destroyed = true;
-			clearTimeout(renderTimer);
-			clearTimeout(saveTimer);
+			scheduleRender.cancel();
+			schedulePersist.cancel();
 			shareHandler.set(null);
 			editorView?.destroy();
 		};

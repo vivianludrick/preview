@@ -13,6 +13,7 @@
 	import SlideView from '$lib/previewers/ppt/SlideView.svelte';
 	import { viewMode, shareHandler } from '$lib/stores/view';
 	import { PromptController } from '$lib/share/prompt.svelte';
+	import { receiveShared } from '$lib/share/receive';
 	import { saveFileContent, loadFileContent } from '$lib/storage';
 	import type { Deck } from '$lib/previewers/ppt/types';
 
@@ -20,7 +21,9 @@
 
 	let fileBytes: Uint8Array | null = null;
 	let fileName = $state('');
-	let deck: Deck | null = $state(null);
+	// $state.raw: a parsed deck is a large plain-object tree that is only ever
+	// swapped wholesale — deep reactivity would proxy every slide element
+	let deck: Deck | null = $state.raw(null);
 	let current = $state(0);
 	// full screen on this page IS presentation mode: only the current slide,
 	// stepped with the chevrons or arrow keys — no filmstrip, no counter
@@ -101,19 +104,18 @@
 			}
 			viewMode.set('preview');
 			loading = true;
-			try {
-				const codec = await import('$lib/share/codec');
-				const bytes = await codec.decodeShareInteractive(data, prompts.prompt);
-				if (destroyed) return;
-				if (bytes === null) {
-					loading = false;
-					error = 'Password required to view this presentation. Reload the page to try again.';
-					return;
-				}
-				await loadBytes(bytes, 'shared.pptx');
-			} catch (e) {
+			const received = await receiveShared(data, prompts.prompt);
+			if (destroyed) return;
+			if (received.status === 'ok') {
+				await loadBytes(received.bytes, 'shared.pptx');
+			} else {
 				loading = false;
-				error = e instanceof Error ? e.message : 'Could not open this share link.';
+				error =
+					received.status === 'cancelled'
+						? 'Password required to view this presentation. Reload the page to try again.'
+						: received.status === 'error'
+							? received.message
+							: '';
 			}
 		})();
 

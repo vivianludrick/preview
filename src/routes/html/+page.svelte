@@ -9,6 +9,9 @@
 	import EditorChrome from '$lib/components/EditorChrome.svelte';
 	import { viewMode, shareHandler } from '$lib/stores/view';
 	import { PromptController } from '$lib/share/prompt.svelte';
+	import { receiveShared } from '$lib/share/receive';
+	import { bytesToText } from '$lib/share/text';
+	import { debounce } from '$lib/debounce';
 	import { saveTextContent, loadTextContent } from '$lib/storage';
 	import { SAMPLE_HTML } from '$lib/previewers/html/sample';
 	import type { EditorView } from '$lib/editor/base';
@@ -28,17 +31,8 @@
 
 	const prompts = new PromptController();
 
-	let renderTimer: ReturnType<typeof setTimeout> | undefined;
-	function scheduleRender() {
-		clearTimeout(renderTimer);
-		renderTimer = setTimeout(() => (rendered = content), 250);
-	}
-
-	let saveTimer: ReturnType<typeof setTimeout> | undefined;
-	function schedulePersist() {
-		clearTimeout(saveTimer);
-		saveTimer = setTimeout(() => saveTextContent(EXT, content), 400);
-	}
+	const scheduleRender = debounce(() => (rendered = content), 250);
+	const schedulePersist = debounce(() => saveTextContent(EXT, content), 400);
 
 	function onEdit(value: string) {
 		content = value;
@@ -53,21 +47,13 @@
 
 		(async () => {
 			const data = $page.url.searchParams.get('data');
-			if (data) {
-				viewMode.set('preview');
-				try {
-					const codec = await import('$lib/share/codec');
-					const bytes = await codec.decodeShareInteractive(data, prompts.prompt);
-					if (destroyed) return;
-					if (bytes === null) {
-						receiveCancelled = true;
-					} else {
-						content = codec.bytesToText(bytes);
-					}
-				} catch (e) {
-					receiveError = e instanceof Error ? e.message : 'Could not open this share link.';
-				}
-			} else {
+			if (data) viewMode.set('preview');
+			const received = await receiveShared(data, prompts.prompt);
+			if (destroyed) return;
+			if (received.status === 'ok') content = bytesToText(received.bytes);
+			else if (received.status === 'cancelled') receiveCancelled = true;
+			else if (received.status === 'error') receiveError = received.message;
+			else {
 				const stored = loadTextContent(EXT);
 				if (stored !== null) content = stored;
 			}
@@ -83,8 +69,8 @@
 
 		return () => {
 			destroyed = true;
-			clearTimeout(renderTimer);
-			clearTimeout(saveTimer);
+			scheduleRender.cancel();
+			schedulePersist.cancel();
 			shareHandler.set(null);
 			editorView?.destroy();
 		};

@@ -8,7 +8,9 @@ import { defineConfig } from '@playwright/test';
 export default defineConfig({
 	testDir: 'tests/e2e',
 	fullyParallel: true,
-	retries: process.env.CI ? 2 : 0,
+	// a handful of workers keeps local Chrome startup from timing out
+	workers: 4,
+	retries: 1,
 	use: {
 		baseURL: 'http://localhost:4573',
 		channel: 'chrome',

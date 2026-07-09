@@ -1,0 +1,11 @@
+node_modules
+build
+.svelte-kit
+.git
+.github
+test-results
+playwright-report
+tests
+deploy
+*.md
+!README.md

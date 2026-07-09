@@ -1,0 +1,25 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: preview
+  labels:
+    app.kubernetes.io/name: preview
+  annotations:
+    # uncomment when cert-manager is installed
+    # cert-manager.io/cluster-issuer: letsencrypt
+spec:
+  ingressClassName: nginx
+  # tls:
+  #   - hosts: [preview.example.com]
+  #     secretName: preview-tls
+  rules:
+    - host: preview.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: preview
+                port:
+                  name: http

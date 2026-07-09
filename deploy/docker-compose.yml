@@ -1,0 +1,27 @@
+# From the repository root:
+#   docker compose -f deploy/docker-compose.yml up --build
+# (podman-compose works identically)
+services:
+  preview:
+    build:
+      context: ..
+      dockerfile: deploy/Containerfile
+      args:
+        BASE_PATH: ""
+    image: preview:latest
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:8080/"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+    # static content only — lock the container down
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /var/cache/nginx
+      - /var/run
+    security_opt:
+      - no-new-privileges:true

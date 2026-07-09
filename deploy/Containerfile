@@ -1,0 +1,30 @@
+# Multi-stage build: compile the static site with Node, serve it with nginx.
+#
+#   podman build -f deploy/Containerfile -t preview .
+#   docker build -f deploy/Containerfile -t preview .
+#
+# BASE_PATH stays empty for a dedicated (sub)domain; set it when the app is
+# served under a path prefix, e.g. --build-arg BASE_PATH=/preview
+
+FROM node:24-alpine AS build
+WORKDIR /app
+
+COPY package.json package-lock.json ./
+RUN npm ci
+
+COPY . .
+ARG BASE_PATH=""
+ENV BASE_PATH=${BASE_PATH}
+RUN npm run build && node scripts/check-bundles.mjs
+
+# ── runtime ────────────────────────────────────────────────────────────────
+# unprivileged nginx: listens on 8080, runs as a non-root user
+FROM nginxinc/nginx-unprivileged:1.27-alpine
+
+COPY deploy/nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=build /app/build /usr/share/nginx/html
+
+EXPOSE 8080
+
+HEALTHCHECK --interval=30s --timeout=3s --retries=3 \
+	CMD wget -q --spider http://127.0.0.1:8080/ || exit 1
