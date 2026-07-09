@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
-	import { LoaderCircle } from 'lucide-svelte';
 	import SplitLayout from '$lib/components/SplitLayout.svelte';
+	import PreviewLoading from '$lib/components/PreviewLoading.svelte';
 	import ShareDialog from '$lib/components/ShareDialog.svelte';
 	import PasswordPrompt from '$lib/components/PasswordPrompt.svelte';
 	import UploadPanel from '$lib/components/UploadPanel.svelte';
@@ -100,14 +100,10 @@
 		/>
 	{/snippet}
 	{#snippet preview()}
-		<div class="flex h-full flex-col">
+		<div class="relative flex h-full flex-col">
+			<PreviewLoading show={loading} label="Parsing workbook…" />
 			{#if error}
 				<div class="p-6 text-sm text-red-500" role="alert">{error}</div>
-			{:else if loading}
-				<div class="flex h-full items-center justify-center gap-2 text-[var(--c-muted)]">
-					<LoaderCircle size={18} class="animate-spin" aria-hidden="true" />
-					<span class="text-sm">Parsing workbook…</span>
-				</div>
 			{:else if workbook}
 				{@const sheet = workbook.sheets[activeSheet]}
 				<div

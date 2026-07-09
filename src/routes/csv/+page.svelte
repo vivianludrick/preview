@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { onMount, tick } from 'svelte';
 	import { page } from '$app/stores';
-	import { LoaderCircle } from 'lucide-svelte';
 	import SplitLayout from '$lib/components/SplitLayout.svelte';
+	import PreviewLoading from '$lib/components/PreviewLoading.svelte';
 	import ShareDialog from '$lib/components/ShareDialog.svelte';
 	import PasswordPrompt from '$lib/components/PasswordPrompt.svelte';
 	import EditorChrome from '$lib/components/EditorChrome.svelte';
@@ -121,18 +121,20 @@
 		</div>
 	{/snippet}
 	{#snippet preview()}
-		<div class="h-full overflow-auto">
+		<div class="relative h-full">
+			<PreviewLoading
+				show={(!parserReady || !table) && !receiveError && !receiveCancelled}
+			/>
+			<div class="h-full overflow-auto">
 			{#if receiveError}
 				<div class="p-6 text-sm text-red-500" role="alert">{receiveError}</div>
 			{:else if receiveCancelled}
 				<div class="p-6 text-sm text-[var(--c-muted)]">
 					Password required to view this document. Reload the page to try again.
 				</div>
-			{:else if !parserReady || !table}
-				<div class="flex h-full items-center justify-center gap-2 text-[var(--c-muted)]">
-					<LoaderCircle size={18} class="animate-spin" aria-hidden="true" />
-					<span class="text-sm">Loading preview…</span>
-				</div>
+			{:else if !table}
+				<!-- overlay above covers this while the parser loads -->
+				<div class="h-full"></div>
 			{:else if table.rows.length === 0}
 				<div class="p-6 text-sm text-[var(--c-muted)]">Nothing to preview yet — type some CSV.</div>
 			{:else}
@@ -166,6 +168,7 @@
 					</p>
 				</div>
 			{/if}
+			</div>
 		</div>
 	{/snippet}
 </SplitLayout>

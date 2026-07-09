@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { onMount, tick } from 'svelte';
 	import { page } from '$app/stores';
-	import { LoaderCircle } from 'lucide-svelte';
 	import SplitLayout from '$lib/components/SplitLayout.svelte';
+	import PreviewLoading from '$lib/components/PreviewLoading.svelte';
 	import ShareDialog from '$lib/components/ShareDialog.svelte';
 	import PasswordPrompt from '$lib/components/PasswordPrompt.svelte';
 	import EditorChrome from '$lib/components/EditorChrome.svelte';
@@ -125,17 +125,14 @@
 		</div>
 	{/snippet}
 	{#snippet preview()}
-		<div class="h-full overflow-y-auto">
-			{#if receiveError}
+		<div class="relative h-full">
+			<PreviewLoading show={!rendererReady && !receiveError && !receiveCancelled} />
+			<div class="h-full overflow-y-auto">
+				{#if receiveError}
 				<div class="p-6 text-sm text-red-500" role="alert">{receiveError}</div>
 			{:else if receiveCancelled}
 				<div class="p-6 text-sm text-[var(--c-muted)]">
 					Password required to view this document. Reload the page to try again.
-				</div>
-			{:else if !rendererReady}
-				<div class="flex h-full items-center justify-center gap-2 text-[var(--c-muted)]">
-					<LoaderCircle size={18} class="animate-spin" aria-hidden="true" />
-					<span class="text-sm">Loading preview…</span>
 				</div>
 			{:else}
 				<article class="md-preview mx-auto max-w-3xl px-6 py-6">
@@ -143,6 +140,7 @@
 					{@html rendered}
 				</article>
 			{/if}
+			</div>
 		</div>
 	{/snippet}
 </SplitLayout>

@@ -1,8 +1,9 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
-	import { ChevronLeft, ChevronRight, LoaderCircle } from 'lucide-svelte';
+	import { ChevronLeft, ChevronRight } from 'lucide-svelte';
 	import SplitLayout from '$lib/components/SplitLayout.svelte';
+	import PreviewLoading from '$lib/components/PreviewLoading.svelte';
 	import ShareDialog from '$lib/components/ShareDialog.svelte';
 	import PasswordPrompt from '$lib/components/PasswordPrompt.svelte';
 	import UploadPanel from '$lib/components/UploadPanel.svelte';
@@ -123,14 +124,10 @@
 		/>
 	{/snippet}
 	{#snippet preview()}
-		<div class="flex h-full flex-col bg-[var(--c-surface)]">
+		<div class="relative flex h-full flex-col bg-[var(--c-surface)]">
+			<PreviewLoading show={loading} label="Parsing presentation…" />
 			{#if error}
 				<div class="p-6 text-sm text-red-500" role="alert">{error}</div>
-			{:else if loading}
-				<div class="flex h-full items-center justify-center gap-2 text-[var(--c-muted)]">
-					<LoaderCircle size={18} class="animate-spin" aria-hidden="true" />
-					<span class="text-sm">Parsing presentation…</span>
-				</div>
 			{:else if deck}
 				<div class="flex min-h-0 flex-1 items-stretch gap-1 p-4">
 					<button

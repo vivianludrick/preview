@@ -3,6 +3,7 @@
 	import { page } from '$app/stores';
 	import { base } from '$app/paths';
 	import SplitLayout from '$lib/components/SplitLayout.svelte';
+	import PreviewLoading from '$lib/components/PreviewLoading.svelte';
 	import ShareDialog from '$lib/components/ShareDialog.svelte';
 	import PasswordPrompt from '$lib/components/PasswordPrompt.svelte';
 	import EditorChrome from '$lib/components/EditorChrome.svelte';
@@ -19,6 +20,7 @@
 
 	let content = $state(defaultHomeDoc(base));
 	let rendered = $state(defaultHomeDoc(base));
+	let previewReady = $state(false);
 	let receiveError = $state('');
 	let receiveCancelled = $state(false);
 	let shareOpen = $state(false);
@@ -72,6 +74,7 @@
 				if (stored !== null && stored.trim()) content = stored;
 			}
 			rendered = content;
+			previewReady = true;
 
 			const ed = await import('$lib/previewers/html/editor');
 			await tick();
@@ -117,7 +120,8 @@
 		</div>
 	{/snippet}
 	{#snippet preview()}
-		<div class="h-full">
+		<div class="relative h-full">
+			<PreviewLoading show={!previewReady && !receiveError && !receiveCancelled} />
 			{#if receiveError}
 				<div class="p-6 text-sm text-red-500" role="alert">{receiveError}</div>
 			{:else if receiveCancelled}

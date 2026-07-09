@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
-	import { LoaderCircle } from 'lucide-svelte';
 	import SplitLayout from '$lib/components/SplitLayout.svelte';
+	import PreviewLoading from '$lib/components/PreviewLoading.svelte';
 	import ShareDialog from '$lib/components/ShareDialog.svelte';
 	import PasswordPrompt from '$lib/components/PasswordPrompt.svelte';
 	import UploadPanel from '$lib/components/UploadPanel.svelte';
@@ -111,14 +111,11 @@
 		/>
 	{/snippet}
 	{#snippet preview()}
-		<div bind:this={scroller} class="h-full overflow-y-auto bg-[var(--c-surface)]">
+		<div class="relative h-full">
+			<PreviewLoading show={loading} label="Loading PDF…" />
+			<div bind:this={scroller} class="h-full overflow-y-auto bg-[var(--c-surface)]">
 			{#if error}
 				<div class="p-6 text-sm text-red-500" role="alert">{error}</div>
-			{:else if loading}
-				<div class="flex h-full items-center justify-center gap-2 text-[var(--c-muted)]">
-					<LoaderCircle size={18} class="animate-spin" aria-hidden="true" />
-					<span class="text-sm">Loading PDF…</span>
-				</div>
 			{:else if pdf && pdfMod}
 				{#key pdf}
 					<div class="flex flex-col items-center gap-4 p-6">
@@ -133,6 +130,7 @@
 					Upload a PDF on the left to preview it here.
 				</div>
 			{/if}
+			</div>
 		</div>
 	{/snippet}
 </SplitLayout>

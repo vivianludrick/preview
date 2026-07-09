@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
-	import { LoaderCircle } from 'lucide-svelte';
 	import SplitLayout from '$lib/components/SplitLayout.svelte';
+	import PreviewLoading from '$lib/components/PreviewLoading.svelte';
 	import ShareDialog from '$lib/components/ShareDialog.svelte';
 	import PasswordPrompt from '$lib/components/PasswordPrompt.svelte';
 	import UploadPanel from '$lib/components/UploadPanel.svelte';
@@ -98,14 +98,11 @@
 		/>
 	{/snippet}
 	{#snippet preview()}
-		<div class="h-full overflow-y-auto">
+		<div class="relative h-full">
+			<PreviewLoading show={loading} label="Converting document…" />
+			<div class="h-full overflow-y-auto">
 			{#if error}
 				<div class="p-6 text-sm text-red-500" role="alert">{error}</div>
-			{:else if loading}
-				<div class="flex h-full items-center justify-center gap-2 text-[var(--c-muted)]">
-					<LoaderCircle size={18} class="animate-spin" aria-hidden="true" />
-					<span class="text-sm">Converting document…</span>
-				</div>
 			{:else if hasDocument}
 				<article class="md-preview mx-auto max-w-3xl px-6 py-6">
 					<!-- eslint-disable-next-line svelte/no-at-html-tags — sanitized by DOMPurify in previewers/docx -->
@@ -116,6 +113,7 @@
 					Upload a DOCX on the left to preview it here.
 				</div>
 			{/if}
+			</div>
 		</div>
 	{/snippet}
 </SplitLayout>

@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import { Eraser, Copy, Check, Download, Sparkles, LoaderCircle } from 'lucide-svelte';
 	import { get } from 'svelte/store';
-	import { geminiKey } from '$lib/stores/settings';
+	import { geminiKey, geminiModel } from '$lib/stores/settings';
 	import type { EditorView } from '$lib/editor/base';
 
 	// One action rail overlaid on the editor's bottom-right corner. It stays
@@ -96,7 +96,7 @@
 		aiError = '';
 		try {
 			const { generate } = await import('$lib/ai/gemini');
-			const output = await generate(key, text);
+			const output = await generate(key, text, get(geminiModel));
 			view.dispatch({
 				changes: { from, to, insert: output },
 				selection: { anchor: from, head: from + output.length }
