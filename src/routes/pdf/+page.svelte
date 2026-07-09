@@ -6,6 +6,7 @@
 	import PreviewLoading from '$lib/components/PreviewLoading.svelte';
 	import PreviewChrome from '$lib/components/PreviewChrome.svelte';
 	import FileActions from '$lib/components/FileActions.svelte';
+	import PageSlider from '$lib/components/PageSlider.svelte';
 	import ShareDialog from '$lib/components/ShareDialog.svelte';
 	import PasswordPrompt from '$lib/components/PasswordPrompt.svelte';
 	import UploadPanel from '$lib/components/UploadPanel.svelte';
@@ -38,17 +39,16 @@
 	let current = $state(0);
 	let presentWidth = $state(800);
 
+	// sized against the SCREEN (= the fullscreen viewport) so neighbouring
+	// pages can prerender at the right size before presenting even starts
 	async function fitPresentWidth() {
 		if (!pdf) return;
 		try {
 			const pdfPage = await pdf.getPage(current + 1);
 			const vp = pdfPage.getViewport({ scale: 1 });
-			presentWidth = Math.max(
-				240,
-				Math.floor(
-					Math.min(window.innerWidth - 130, (window.innerHeight - 24) * (vp.width / vp.height))
-				)
-			);
+			const maxW = (window.screen?.width ?? window.innerWidth) - 130;
+			const maxH = (window.screen?.height ?? window.innerHeight) - 24;
+			presentWidth = Math.max(240, Math.floor(Math.min(maxW, maxH * (vp.width / vp.height))));
 		} catch {
 			/* keep the previous width */
 		}
@@ -57,7 +57,6 @@
 	function go(delta: number) {
 		if (!pdf) return;
 		current = Math.min(Math.max(current + delta, 0), pdf.numPages - 1);
-		void fitPresentWidth();
 	}
 
 	function onKeydown(event: KeyboardEvent) {
@@ -82,6 +81,7 @@
 			fileName = name;
 			pdf = document;
 			current = 0;
+			void fitPresentWidth();
 			void previous?.destroy();
 			// zoom-to-fit-width for the current pane
 			pageWidth = Math.max(320, Math.min((scroller?.clientWidth ?? 760) - 48, 1100));
@@ -184,14 +184,21 @@
 					>
 						<ChevronLeft size={22} aria-hidden="true" />
 					</button>
-					<div class="flex min-h-0 min-w-0 flex-1 items-center justify-center overflow-auto">
-						{#key `${current}-${presentWidth}`}
-							<PdfPageCanvas
-								{pdf}
-								pageNumber={current + 1}
-								width={presentWidth}
-								render={pdfMod.renderPage}
-							/>
+					<div class="min-h-0 min-w-0 flex-1">
+						{#key presentWidth}
+							<PageSlider {current} count={pdf.numPages}>
+								{#snippet page(i)}
+									<div class="flex h-full w-full items-center justify-center">
+										<!-- pdf/pdfMod are set — the surrounding branch guarantees it -->
+										<PdfPageCanvas
+											pdf={pdf!}
+											pageNumber={i + 1}
+											width={presentWidth}
+											render={pdfMod!.renderPage}
+										/>
+									</div>
+								{/snippet}
+							</PageSlider>
 						{/key}
 					</div>
 					<button

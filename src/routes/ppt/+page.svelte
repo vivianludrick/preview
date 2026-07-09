@@ -6,6 +6,7 @@
 	import PreviewLoading from '$lib/components/PreviewLoading.svelte';
 	import PreviewChrome from '$lib/components/PreviewChrome.svelte';
 	import FileActions from '$lib/components/FileActions.svelte';
+	import PageSlider from '$lib/components/PageSlider.svelte';
 	import ShareDialog from '$lib/components/ShareDialog.svelte';
 	import PasswordPrompt from '$lib/components/PasswordPrompt.svelte';
 	import UploadPanel from '$lib/components/UploadPanel.svelte';
@@ -162,7 +163,12 @@
 						<ChevronLeft size={22} aria-hidden="true" />
 					</button>
 					<div class="min-h-0 min-w-0 flex-1">
-						<SlideView {deck} index={current} />
+						<PageSlider {current} count={deck.slides.length}>
+							{#snippet page(i)}
+								<!-- deck is set — the surrounding branch guarantees it -->
+								<SlideView deck={deck!} index={i} />
+							{/snippet}
+						</PageSlider>
 					</div>
 					<button
 						type="button"
