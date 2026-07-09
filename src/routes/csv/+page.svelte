@@ -3,6 +3,7 @@
 	import { page } from '$app/stores';
 	import SplitLayout from '$lib/components/SplitLayout.svelte';
 	import PreviewLoading from '$lib/components/PreviewLoading.svelte';
+	import PreviewChrome from '$lib/components/PreviewChrome.svelte';
 	import ShareDialog from '$lib/components/ShareDialog.svelte';
 	import PasswordPrompt from '$lib/components/PasswordPrompt.svelte';
 	import EditorChrome from '$lib/components/EditorChrome.svelte';
@@ -125,6 +126,7 @@
 			<PreviewLoading
 				show={(!parserReady || !table) && !receiveError && !receiveCancelled}
 			/>
+			<PreviewChrome />
 			<div class="h-full overflow-auto">
 			{#if receiveError}
 				<div class="p-6 text-sm text-red-500" role="alert">{receiveError}</div>

@@ -3,6 +3,8 @@
 	import { page } from '$app/stores';
 	import SplitLayout from '$lib/components/SplitLayout.svelte';
 	import PreviewLoading from '$lib/components/PreviewLoading.svelte';
+	import PreviewChrome from '$lib/components/PreviewChrome.svelte';
+	import FileActions from '$lib/components/FileActions.svelte';
 	import ShareDialog from '$lib/components/ShareDialog.svelte';
 	import PasswordPrompt from '$lib/components/PasswordPrompt.svelte';
 	import UploadPanel from '$lib/components/UploadPanel.svelte';
@@ -49,6 +51,14 @@
 		if (!error) saveFileContent(EXT, file.name, bytes);
 	}
 
+	function clearDocument() {
+		workbook = null;
+		fileBytes = null;
+		fileName = '';
+		activeSheet = 0;
+		error = '';
+	}
+
 	onMount(() => {
 		viewMode.set('split');
 		shareHandler.set(() => (shareOpen = true));
@@ -91,17 +101,21 @@
 
 <SplitLayout>
 	{#snippet editor()}
-		<UploadPanel
-			accept=".xlsx,.xls,.ods,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-			label="Choose an XLSX to preview"
-			hint="parsed locally, never uploaded"
-			{fileName}
-			onfile={onUpload}
-		/>
+		<div class="relative h-full">
+			<UploadPanel
+				accept=".xlsx,.xls,.ods,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+				label="Choose an XLSX to preview"
+				hint="parsed locally, never uploaded"
+				{fileName}
+				onfile={onUpload}
+			/>
+			<FileActions ext={EXT} {fileName} getBytes={() => fileBytes} onclear={clearDocument} />
+		</div>
 	{/snippet}
 	{#snippet preview()}
 		<div class="relative flex h-full flex-col">
 			<PreviewLoading show={loading} label="Parsing workbook…" />
+			<PreviewChrome />
 			{#if error}
 				<div class="p-6 text-sm text-red-500" role="alert">{error}</div>
 			{:else if workbook}

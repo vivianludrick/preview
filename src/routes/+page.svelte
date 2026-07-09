@@ -4,6 +4,7 @@
 	import { base } from '$app/paths';
 	import SplitLayout from '$lib/components/SplitLayout.svelte';
 	import PreviewLoading from '$lib/components/PreviewLoading.svelte';
+	import PreviewChrome from '$lib/components/PreviewChrome.svelte';
 	import ShareDialog from '$lib/components/ShareDialog.svelte';
 	import PasswordPrompt from '$lib/components/PasswordPrompt.svelte';
 	import EditorChrome from '$lib/components/EditorChrome.svelte';
@@ -122,6 +123,7 @@
 	{#snippet preview()}
 		<div class="relative h-full">
 			<PreviewLoading show={!previewReady && !receiveError && !receiveCancelled} />
+			<PreviewChrome />
 			{#if receiveError}
 				<div class="p-6 text-sm text-red-500" role="alert">{receiveError}</div>
 			{:else if receiveCancelled}

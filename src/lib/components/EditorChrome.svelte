@@ -1,57 +1,18 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
 	import { Eraser, Copy, Check, Download, Sparkles, LoaderCircle } from 'lucide-svelte';
 	import { get } from 'svelte/store';
+	import ActionRail from './ActionRail.svelte';
 	import { geminiKey, geminiModel } from '$lib/stores/settings';
+	import { downloadBlob } from '$lib/download';
 	import type { EditorView } from '$lib/editor/base';
 
-	// One action rail overlaid on the editor's bottom-right corner. It stays
-	// invisible until the cursor comes near (or while an AI call is running).
+	// Editor-pane action rail: clear / copy / download / ai.
 	let { view, filename = 'document.txt' }: { view: EditorView | null; filename?: string } =
 		$props();
 
-	let rail: HTMLElement | undefined = $state();
-	let nearRail = $state(false);
-	let draggingOutside = $state(false);
 	let copied = $state(false);
 	let aiBusy = $state(false);
 	let aiError = $state('');
-
-	const PROXIMITY_PX = 150;
-	const visible = $derived((nearRail && !draggingOutside) || aiBusy);
-
-	function near(el: HTMLElement | undefined, x: number, y: number): boolean {
-		if (!el) return false;
-		const rect = el.getBoundingClientRect();
-		const cx = Math.max(rect.left, Math.min(x, rect.right));
-		const cy = Math.max(rect.top, Math.min(y, rect.bottom));
-		return Math.hypot(x - cx, y - cy) < PROXIMITY_PX;
-	}
-
-	onMount(() => {
-		let raf = 0;
-		const onMove = (event: PointerEvent) => {
-			// a pressed button means a selection drag is in progress — never let
-			// the rail appear under the cursor and swallow the drag
-			if (event.buttons !== 0) return;
-			const { clientX, clientY } = event;
-			cancelAnimationFrame(raf);
-			raf = requestAnimationFrame(() => (nearRail = near(rail, clientX, clientY)));
-		};
-		const onDown = (event: PointerEvent) => {
-			draggingOutside = !(event.target instanceof Node && rail?.contains(event.target));
-		};
-		const onUp = () => (draggingOutside = false);
-		window.addEventListener('pointermove', onMove);
-		window.addEventListener('pointerdown', onDown);
-		window.addEventListener('pointerup', onUp);
-		return () => {
-			cancelAnimationFrame(raf);
-			window.removeEventListener('pointermove', onMove);
-			window.removeEventListener('pointerdown', onDown);
-			window.removeEventListener('pointerup', onUp);
-		};
-	});
 
 	/** the selection when there is one, otherwise the whole document */
 	function selectedOrAll(): { text: string; from: number; to: number } {
@@ -77,13 +38,10 @@
 
 	function download() {
 		if (!view) return;
-		const blob = new Blob([view.state.doc.toString()], { type: 'text/plain;charset=utf-8' });
-		const url = URL.createObjectURL(blob);
-		const a = document.createElement('a');
-		a.href = url;
-		a.download = filename;
-		a.click();
-		URL.revokeObjectURL(url);
+		downloadBlob(
+			new Blob([view.state.doc.toString()], { type: 'text/plain;charset=utf-8' }),
+			filename
+		);
 	}
 
 	async function runAi() {
@@ -111,15 +69,7 @@
 </script>
 
 {#if view}
-	<div
-		bind:this={rail}
-		role="toolbar"
-		aria-label="Editor actions"
-		aria-orientation="vertical"
-		class="absolute bottom-3 right-3 z-10 flex flex-col divide-y divide-[var(--c-border)] overflow-hidden rounded-lg border border-[var(--c-border)] bg-[var(--c-surface)] text-xs text-[var(--c-muted)] shadow transition-opacity {visible
-			? 'opacity-100'
-			: 'pointer-events-none opacity-0'}"
-	>
+	<ActionRail forceVisible={aiBusy}>
 		<button
 			type="button"
 			title="Clear editor"
@@ -162,11 +112,11 @@
 				{/if}
 			</button>
 		{/if}
-	</div>
+	</ActionRail>
 	{#if aiError}
 		<p
 			role="alert"
-			class="absolute bottom-3 right-32 z-10 max-w-xs rounded-lg border border-red-500/50 bg-[var(--c-surface)] px-3 py-2 text-xs text-red-500 shadow"
+			class="absolute right-32 top-3 z-10 max-w-xs rounded-lg border border-red-500/50 bg-[var(--c-surface)] px-3 py-2 text-xs text-red-500 shadow"
 		>
 			{aiError}
 		</p>

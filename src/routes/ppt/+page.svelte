@@ -4,6 +4,8 @@
 	import { ChevronLeft, ChevronRight } from 'lucide-svelte';
 	import SplitLayout from '$lib/components/SplitLayout.svelte';
 	import PreviewLoading from '$lib/components/PreviewLoading.svelte';
+	import PreviewChrome from '$lib/components/PreviewChrome.svelte';
+	import FileActions from '$lib/components/FileActions.svelte';
 	import ShareDialog from '$lib/components/ShareDialog.svelte';
 	import PasswordPrompt from '$lib/components/PasswordPrompt.svelte';
 	import UploadPanel from '$lib/components/UploadPanel.svelte';
@@ -55,6 +57,15 @@
 		const bytes = new Uint8Array(await file.arrayBuffer());
 		await loadBytes(bytes, file.name);
 		if (!error) saveFileContent(EXT, file.name, bytes);
+	}
+
+	function clearDocument() {
+		if (deck && dispose) dispose(deck);
+		deck = null;
+		fileBytes = null;
+		fileName = '';
+		current = 0;
+		error = '';
 	}
 
 	function go(delta: number) {
@@ -115,17 +126,21 @@
 
 <SplitLayout>
 	{#snippet editor()}
-		<UploadPanel
-			accept=".pptx,application/vnd.openxmlformats-officedocument.presentationml.presentation"
-			label="Choose a PPTX to preview"
-			hint="parsed locally, never uploaded"
-			{fileName}
-			onfile={onUpload}
-		/>
+		<div class="relative h-full">
+			<UploadPanel
+				accept=".pptx,application/vnd.openxmlformats-officedocument.presentationml.presentation"
+				label="Choose a PPTX to preview"
+				hint="parsed locally, never uploaded"
+				{fileName}
+				onfile={onUpload}
+			/>
+			<FileActions ext={EXT} {fileName} getBytes={() => fileBytes} onclear={clearDocument} />
+		</div>
 	{/snippet}
 	{#snippet preview()}
 		<div class="relative flex h-full flex-col bg-[var(--c-surface)]">
 			<PreviewLoading show={loading} label="Parsing presentation…" />
+			<PreviewChrome />
 			{#if error}
 				<div class="p-6 text-sm text-red-500" role="alert">{error}</div>
 			{:else if deck}

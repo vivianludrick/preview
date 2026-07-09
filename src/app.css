@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+/* present mode: a fullscreened preview pane keeps the theme background
+   instead of the UA's black backdrop */
+:fullscreen {
+	background-color: var(--c-bg);
+}
+
 /*
  * Theme variables. Defaults below cover the first paint before a theme JSON is
  * applied; the inline bootstrap script in app.html restores the cached palette

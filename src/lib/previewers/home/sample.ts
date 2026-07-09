@@ -71,31 +71,42 @@ export function defaultHomeDoc(base: string): string {
 	.scatter:hover { color: var(--accent); opacity: 1; scale: 1.1; }
 	@media (max-width: 768px) { .scatter { display: none; } }
 	main {
-		min-height: 100%; max-width: 36rem; margin: 0 auto; padding: 4rem 1.5rem;
-		display: flex; flex-direction: column; justify-content: center; gap: 2rem;
+		min-height: 100%; max-width: 38rem; margin: 0 auto; padding: 4rem 1.5rem;
+		display: flex; flex-direction: column; justify-content: center; gap: 2.5rem;
 	}
-	h1 { font-size: 3.75rem; letter-spacing: -.025em; text-align: center; }
+	h1 { font-size: clamp(3.5rem, 10vw, 5.75rem); letter-spacing: -.025em; text-align: center; }
 	h1 em { color: var(--accent); font-style: normal; }
-	.tagline { text-align: center; color: var(--muted); }
-	.tagline small { opacity: .7; }
+	.tagline { text-align: center; color: var(--muted); font-size: 1.2rem; line-height: 1.55; }
+	.tagline small { opacity: .7; font-size: .85rem; }
+	/* the results drop over the page instead of pushing it, so nothing shifts */
+	.search-area { position: relative; }
 	.search {
 		display: flex; align-items: center; gap: .5rem;
-		border: 1px solid var(--border); border-radius: .75rem;
-		background: var(--surface); padding: .75rem 1rem;
+		border: 1px solid var(--border); border-radius: 1rem;
+		background: var(--surface); padding: .875rem 1.125rem;
 	}
 	.search:focus-within { border-color: var(--accent); }
 	.search svg { flex-shrink: 0; color: var(--muted); }
 	.search input {
 		width: 100%; border: 0; background: transparent; color: var(--fg);
-		font: inherit; font-size: .875rem; outline: none;
+		font: inherit; font-size: 1rem; outline: none;
 	}
-	#cards { display: flex; flex-direction: column; gap: .5rem; margin-top: .75rem; }
+	/* results list: hidden until something is searched; Material 3 Expressive
+	   attached items — big radii on the list's outer corners, small on the
+	   shared inner edges, 2px seams between items */
+	#cards {
+		display: none; position: absolute; top: calc(100% + .625rem); left: 0; right: 0;
+		flex-direction: column; gap: 2px; max-height: 46vh; overflow-y: auto; z-index: 5;
+	}
+	#cards.open { display: flex; }
 	.card {
-		display: block; border: 1px solid var(--border); border-radius: .75rem;
+		display: block; background: var(--surface); border-radius: 6px;
 		padding: .625rem 1rem; text-decoration: none; color: inherit;
-		transition: border-color .15s, background .15s;
+		transition: background .15s, border-radius .15s;
 	}
-	.card:hover, .card.active { border-color: var(--accent); background: var(--surface); }
+	.card.first { border-top-left-radius: 1rem; border-top-right-radius: 1rem; }
+	.card.last { border-bottom-left-radius: 1rem; border-bottom-right-radius: 1rem; }
+	.card:hover, .card.active { background: color-mix(in srgb, var(--accent) 16%, var(--surface)); }
 	.card-title { font-weight: 500; }
 	.card-title code {
 		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -105,7 +116,10 @@ export function defaultHomeDoc(base: string): string {
 		display: block; font-size: .875rem; color: var(--muted);
 		white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 	}
-	#empty { display: none; padding: .75rem 1rem; font-size: .875rem; color: var(--muted); }
+	#empty {
+		display: none; background: var(--surface); border-radius: 1rem;
+		padding: .75rem 1rem; font-size: .875rem; color: var(--muted);
+	}
 </style>
 </head>
 <body>
@@ -119,7 +133,7 @@ ${scatteredLinks}
 				<small>(psst — this page is a document too: switch to the editor view and change it.)</small>
 			</p>
 		</header>
-		<section>
+		<section class="search-area">
 			<label class="search">
 				<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
 				     stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -135,23 +149,28 @@ ${cards}
 	</main>
 	<script>
 		const q = document.getElementById('q');
+		const list = document.getElementById('cards');
 		const cards = [...document.querySelectorAll('.card')];
 		const empty = document.getElementById('empty');
 		function filter() {
 			const needle = q.value.trim().toLowerCase();
-			let first = null;
+			list.classList.toggle('open', !!needle);
+			const hits = [];
 			for (const card of cards) {
-				const hit = !needle || card.dataset.search.includes(needle);
+				const hit = !!needle && card.dataset.search.includes(needle);
 				card.style.display = hit ? '' : 'none';
-				card.classList.remove('active');
-				if (hit && !first) first = card;
+				card.classList.remove('active', 'first', 'last');
+				if (hit) hits.push(card);
 			}
-			if (first && needle) first.classList.add('active');
-			empty.style.display = first ? 'none' : 'block';
+			if (hits.length) {
+				hits[0].classList.add('active', 'first');
+				hits[hits.length - 1].classList.add('last');
+			}
+			empty.style.display = !needle || hits.length ? 'none' : 'block';
 		}
 		q.addEventListener('input', filter);
 		q.addEventListener('keydown', (e) => {
-			const target = document.querySelector('.card.active') ?? cards[0];
+			const target = document.querySelector('.card.active');
 			if (e.key === 'Enter' && target) window.open(target.href, '_top');
 		});
 	</script>

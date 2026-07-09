@@ -57,6 +57,12 @@ export function loadFileContent(ext: string): { name: string; bytes: Uint8Array 
 	}
 }
 
+/** forget one previewer's saved content (the rail's "clear" on upload pages) */
+export function clearContent(ext: string): void {
+	if (!browser) return;
+	localStorage.removeItem(CONTENT_PREFIX + ext);
+}
+
 /** bytes used by all preview:* localStorage entries (UTF-16 → 2 bytes/char) */
 export function localUsageBytes(): number {
 	if (!browser) return 0;
