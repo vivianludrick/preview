@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { page } from '$app/stores';
+	import { ChevronLeft, ChevronRight } from 'lucide-svelte';
 	import SplitLayout from '$lib/components/SplitLayout.svelte';
 	import PreviewLoading from '$lib/components/PreviewLoading.svelte';
 	import PreviewChrome from '$lib/components/PreviewChrome.svelte';
@@ -30,6 +31,41 @@
 	let scroller: HTMLDivElement | undefined = $state();
 	let pageWidth = $state(720);
 
+	// full screen on this page is presentation mode (like /ppt): one page at
+	// a time, stepped with chevrons or arrow keys. The normal preview stays
+	// the scrollable document.
+	let presenting = $state(false);
+	let current = $state(0);
+	let presentWidth = $state(800);
+
+	async function fitPresentWidth() {
+		if (!pdf) return;
+		try {
+			const pdfPage = await pdf.getPage(current + 1);
+			const vp = pdfPage.getViewport({ scale: 1 });
+			presentWidth = Math.max(
+				240,
+				Math.floor(
+					Math.min(window.innerWidth - 130, (window.innerHeight - 24) * (vp.width / vp.height))
+				)
+			);
+		} catch {
+			/* keep the previous width */
+		}
+	}
+
+	function go(delta: number) {
+		if (!pdf) return;
+		current = Math.min(Math.max(current + delta, 0), pdf.numPages - 1);
+		void fitPresentWidth();
+	}
+
+	function onKeydown(event: KeyboardEvent) {
+		if (!presenting || !pdf) return;
+		if (event.key === 'ArrowRight') go(1);
+		if (event.key === 'ArrowLeft') go(-1);
+	}
+
 	const prompts = new PromptController();
 
 	async function loadBytes(bytes: Uint8Array, name: string) {
@@ -45,6 +81,7 @@
 			fileBytes = bytes;
 			fileName = name;
 			pdf = document;
+			current = 0;
 			void previous?.destroy();
 			// zoom-to-fit-width for the current pane
 			pageWidth = Math.max(320, Math.min((scroller?.clientWidth ?? 760) - 48, 1100));
@@ -73,6 +110,12 @@
 		viewMode.set('split');
 		shareHandler.set(() => (shareOpen = true));
 
+		const onFullscreenChange = () => {
+			presenting = !!document.fullscreenElement;
+			if (presenting) void fitPresentWidth();
+		};
+		document.addEventListener('fullscreenchange', onFullscreenChange);
+
 		(async () => {
 			const data = $page.url.searchParams.get('data');
 			if (!data) {
@@ -100,6 +143,7 @@
 
 		return () => {
 			destroyed = true;
+			document.removeEventListener('fullscreenchange', onFullscreenChange);
 			shareHandler.set(null);
 			void pdf?.destroy();
 		};
@@ -109,6 +153,8 @@
 <svelte:head>
 	<title>preview.pdf — PDF previewer</title>
 </svelte:head>
+
+<svelte:window onkeydown={onKeydown} />
 
 <SplitLayout>
 	{#snippet editor()}
@@ -127,7 +173,42 @@
 		<div class="relative h-full">
 			<PreviewLoading show={loading} label="Loading PDF…" />
 			<PreviewChrome />
-			<div bind:this={scroller} class="h-full overflow-y-auto bg-[var(--c-surface)]">
+			{#if presenting && pdf && pdfMod}
+				<div class="flex h-full items-stretch gap-1 bg-[var(--c-surface)] p-4">
+					<button
+						type="button"
+						aria-label="Previous page"
+						disabled={current === 0}
+						onclick={() => go(-1)}
+						class="shrink-0 self-center rounded-full p-1.5 text-[var(--c-muted)] hover:text-[var(--c-fg)] disabled:opacity-30"
+					>
+						<ChevronLeft size={22} aria-hidden="true" />
+					</button>
+					<div class="flex min-h-0 min-w-0 flex-1 items-center justify-center overflow-auto">
+						{#key `${current}-${presentWidth}`}
+							<PdfPageCanvas
+								{pdf}
+								pageNumber={current + 1}
+								width={presentWidth}
+								render={pdfMod.renderPage}
+							/>
+						{/key}
+					</div>
+					<button
+						type="button"
+						aria-label="Next page"
+						disabled={current === pdf.numPages - 1}
+						onclick={() => go(1)}
+						class="shrink-0 self-center rounded-full p-1.5 text-[var(--c-muted)] hover:text-[var(--c-fg)] disabled:opacity-30"
+					>
+						<ChevronRight size={22} aria-hidden="true" />
+					</button>
+				</div>
+			{/if}
+			<div
+				bind:this={scroller}
+				class="h-full overflow-y-auto bg-[var(--c-surface)] {presenting ? 'hidden' : ''}"
+			>
 			{#if error}
 				<div class="p-6 text-sm text-red-500" role="alert">{error}</div>
 			{:else if pdf && pdfMod}

@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Copy, Check, Scissors, LoaderCircle } from 'lucide-svelte';
+	import { Copy, Check, Scissors, LoaderCircle, X } from 'lucide-svelte';
 	import InfoPopover from './InfoPopover.svelte';
 
 	let {
@@ -88,7 +88,17 @@
 >
 	{#if open}
 		<div class="flex flex-col gap-4 p-5">
-			<h2 class="text-lg font-semibold">Share</h2>
+			<div class="flex items-center justify-between">
+				<h2 class="text-lg font-semibold">Share</h2>
+				<button
+					type="button"
+					aria-label="Close share dialog"
+					onclick={() => (open = false)}
+					class="rounded-lg p-1 text-[var(--c-muted)] hover:text-[var(--c-fg)]"
+				>
+					<X size={18} aria-hidden="true" />
+				</button>
+			</div>
 
 			<div class="flex flex-col gap-1.5">
 				<label for="share-password" class="flex items-center gap-1 text-sm font-medium">
@@ -189,14 +199,6 @@
 			{#if notice}
 				<p role="status" class="text-sm text-[var(--c-muted)]">{notice}</p>
 			{/if}
-
-			<button
-				type="button"
-				onclick={() => (open = false)}
-				class="self-end rounded-lg px-3 py-1.5 text-sm text-[var(--c-muted)] hover:text-[var(--c-fg)]"
-			>
-				Close
-			</button>
 		</div>
 	{/if}
 </dialog>

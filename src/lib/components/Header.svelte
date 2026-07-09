@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { Link, Settings } from 'lucide-svelte';
+	import { Link, Settings, Github } from 'lucide-svelte';
 	import { page } from '$app/stores';
 	import { goto } from '$app/navigation';
 	import { base } from '$app/paths';
@@ -52,6 +52,16 @@
 			<Link size={16} aria-hidden="true" />
 		</button>
 	{/if}
+	<a
+		href="https://github.com/vivianludrick/preview"
+		target="_blank"
+		rel="noopener noreferrer"
+		aria-label="GitHub repository"
+		title="View the source on GitHub"
+		class="rounded-lg border border-[var(--c-border)] bg-[var(--c-bg)] p-1.5 text-[var(--c-muted)] transition-colors hover:text-[var(--c-fg)]"
+	>
+		<Github size={16} aria-hidden="true" />
+	</a>
 	<button
 		type="button"
 		aria-label="Settings"
