@@ -21,7 +21,9 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          # node 24 ships npm 11, matching the npm that generated package-lock.json
+          # (npm 10 rejects npm 11's hoisting layout in `npm ci`)
+          node-version: 24
           cache: npm
       - run: npm ci
       - run: npm test
