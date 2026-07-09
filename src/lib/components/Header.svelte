@@ -25,22 +25,17 @@
 	<span class="flex items-baseline font-semibold tracking-tight">
 		<a href="{base}/" class="text-[var(--c-fg)]">preview</a>
 		{#if ext}
-			<span class="relative">
-				<select
-					value={ext}
-					onchange={(e) => goto(`${base}/${e.currentTarget.value}/`)}
-					aria-label="Switch previewer"
-					class="cursor-pointer appearance-none bg-transparent pr-3 font-semibold text-[var(--c-accent)] focus:outline-none"
-				>
-					{#each registry as p (p.ext)}
-						<option value={p.ext}>.{p.ext}</option>
-					{/each}
-				</select>
-				<span
-					aria-hidden="true"
-					class="pointer-events-none absolute right-0 top-1/2 -translate-y-1/2 text-[9px] text-[var(--c-muted)]">▾</span
-				>
-			</span>
+			<select
+				value={ext}
+				onchange={(e) => goto(`${base}/${e.currentTarget.value}/`)}
+				aria-label="Switch previewer"
+				title="Switch previewer"
+				class="cursor-pointer appearance-none bg-transparent font-semibold text-[var(--c-accent)] focus:outline-none"
+			>
+				{#each registry as p (p.ext)}
+					<option value={p.ext}>.{p.ext}</option>
+				{/each}
+			</select>
 		{/if}
 	</span>
 	<div class="flex-1"></div>

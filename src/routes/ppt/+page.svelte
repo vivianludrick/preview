@@ -21,6 +21,9 @@
 	let fileName = $state('');
 	let deck: Deck | null = $state(null);
 	let current = $state(0);
+	// full screen on this page IS presentation mode: only the current slide,
+	// stepped with the chevrons or arrow keys — no filmstrip, no counter
+	let presenting = $state(false);
 	let loading = $state(false);
 	let error = $state('');
 	let shareOpen = $state(false);
@@ -85,6 +88,9 @@
 		viewMode.set('split');
 		shareHandler.set(() => (shareOpen = true));
 
+		const onFullscreenChange = () => (presenting = !!document.fullscreenElement);
+		document.addEventListener('fullscreenchange', onFullscreenChange);
+
 		(async () => {
 			const data = $page.url.searchParams.get('data');
 			if (!data) {
@@ -112,6 +118,7 @@
 
 		return () => {
 			destroyed = true;
+			document.removeEventListener('fullscreenchange', onFullscreenChange);
 			shareHandler.set(null);
 			if (deck && dispose) dispose(deck);
 		};
@@ -167,11 +174,12 @@
 						<ChevronRight size={22} aria-hidden="true" />
 					</button>
 				</div>
-				<p class="pb-1 text-center text-xs text-[var(--c-muted)]">
-					Slide {current + 1} / {deck.slides.length}
-				</p>
-				<!-- filmstrip -->
-				<div class="flex shrink-0 gap-2 overflow-x-auto border-t border-[var(--c-border)] p-3">
+				{#if !presenting}
+					<p class="pb-1 text-center text-xs text-[var(--c-muted)]">
+						Slide {current + 1} / {deck.slides.length}
+					</p>
+					<!-- filmstrip -->
+					<div class="flex shrink-0 gap-2 overflow-x-auto border-t border-[var(--c-border)] p-3">
 					{#each deck.slides as _, i (i)}
 						<button
 							type="button"
@@ -191,7 +199,8 @@
 							</span>
 						</button>
 					{/each}
-				</div>
+					</div>
+				{/if}
 			{:else}
 				<div class="flex h-full items-center justify-center p-6 text-center text-sm text-[var(--c-muted)]">
 					Upload a PPTX on the left to preview the slides here.
