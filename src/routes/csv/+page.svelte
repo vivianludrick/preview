@@ -9,35 +9,34 @@
 	import { viewMode, shareHandler } from '$lib/stores/view';
 	import { PromptController } from '$lib/share/prompt.svelte';
 	import { saveTextContent, loadTextContent } from '$lib/storage';
-	import { SAMPLE_DOCUMENT } from '$lib/previewers/markdown/sample';
+	import { SAMPLE_CSV } from '$lib/previewers/csv/sample';
+	import type { CsvResult } from '$lib/previewers/csv/parse';
 	import type { EditorView } from '$lib/editor/base';
 
-	const EXT = 'md';
+	const EXT = 'csv';
 
-	let content = $state(SAMPLE_DOCUMENT);
-	let rendered = $state('');
-	let rendererReady = $state(false);
+	let content = $state(SAMPLE_CSV);
+	let table: CsvResult | null = $state(null);
+	let parserReady = $state(false);
 	let receiveError = $state('');
 	let receiveCancelled = $state(false);
 	let shareOpen = $state(false);
 
-	let renderMarkdown: ((s: string) => string) | null = null;
+	let parseCsv: ((text: string) => CsvResult) | null = null;
 	let editorHost: HTMLDivElement | undefined = $state();
 	let editorView: EditorView | null = $state(null);
 	let editorReady = $state(false);
 
 	const prompts = new PromptController();
 
-	// re-render per keystroke, debounced so multi-thousand-line docs stay smooth
 	let renderTimer: ReturnType<typeof setTimeout> | undefined;
 	function scheduleRender() {
 		clearTimeout(renderTimer);
 		renderTimer = setTimeout(() => {
-			if (renderMarkdown) rendered = renderMarkdown(content);
+			if (parseCsv) table = parseCsv(content);
 		}, 120);
 	}
 
-	// excalidraw-style: the raw document is always recoverable from localStorage
 	let saveTimer: ReturnType<typeof setTimeout> | undefined;
 	function schedulePersist() {
 		clearTimeout(saveTimer);
@@ -56,7 +55,6 @@
 		let destroyed = false;
 
 		(async () => {
-			// receiver path: content arrives inside the URL, default to Preview mode
 			const data = $page.url.searchParams.get('data');
 			if (data) {
 				viewMode.set('preview');
@@ -77,15 +75,14 @@
 				if (stored !== null) content = stored;
 			}
 
-			// page shell is already interactive; previewer + editor load in the background
-			const render = await import('$lib/previewers/markdown/render');
+			const mod = await import('$lib/previewers/csv/parse');
 			if (destroyed) return;
-			renderMarkdown = render.renderMarkdown;
-			rendered = renderMarkdown(content);
-			rendererReady = true;
+			parseCsv = mod.parseCsv;
+			table = parseCsv(content);
+			parserReady = true;
 
-			const ed = await import('$lib/previewers/markdown/editor');
-			await tick(); // make sure the editor host is in the DOM
+			const ed = await import('$lib/previewers/csv/editor');
+			await tick();
 			if (destroyed || !editorHost) return;
 			editorView = ed.createEditor(editorHost, content, onEdit);
 			editorReady = true;
@@ -102,18 +99,17 @@
 </script>
 
 <svelte:head>
-	<title>preview.md — markdown previewer</title>
+	<title>preview.csv — CSV previewer</title>
 </svelte:head>
 
 <SplitLayout>
 	{#snippet editor()}
 		<div class="relative h-full">
-			<!-- plain textarea keeps typing possible while CodeMirror loads in the background -->
 			<textarea
 				class="h-full w-full resize-none bg-[var(--c-bg)] p-3 font-mono text-sm text-[var(--c-fg)] focus:outline-none {editorReady
 					? 'hidden'
 					: ''}"
-				aria-label="Markdown source"
+				aria-label="CSV source"
 				bind:value={content}
 				oninput={() => {
 					scheduleRender();
@@ -125,23 +121,50 @@
 		</div>
 	{/snippet}
 	{#snippet preview()}
-		<div class="h-full overflow-y-auto">
+		<div class="h-full overflow-auto">
 			{#if receiveError}
 				<div class="p-6 text-sm text-red-500" role="alert">{receiveError}</div>
 			{:else if receiveCancelled}
 				<div class="p-6 text-sm text-[var(--c-muted)]">
 					Password required to view this document. Reload the page to try again.
 				</div>
-			{:else if !rendererReady}
+			{:else if !parserReady || !table}
 				<div class="flex h-full items-center justify-center gap-2 text-[var(--c-muted)]">
 					<LoaderCircle size={18} class="animate-spin" aria-hidden="true" />
 					<span class="text-sm">Loading preview…</span>
 				</div>
+			{:else if table.rows.length === 0}
+				<div class="p-6 text-sm text-[var(--c-muted)]">Nothing to preview yet — type some CSV.</div>
 			{:else}
-				<article class="md-preview mx-auto max-w-3xl px-6 py-6">
-					<!-- eslint-disable-next-line svelte/no-at-html-tags — sanitized by DOMPurify in render.ts -->
-					{@html rendered}
-				</article>
+				<div class="p-4">
+					<table class="w-full border-collapse text-sm">
+						<thead>
+							<tr>
+								{#each table.rows[0] as cell, i (i)}
+									<th
+										class="sticky top-0 border border-[var(--c-border)] bg-[var(--c-surface)] px-3 py-1.5 text-left font-semibold"
+									>
+										{cell}
+									</th>
+								{/each}
+							</tr>
+						</thead>
+						<tbody>
+							{#each table.rows.slice(1) as row, ri (ri)}
+								<tr class="odd:bg-[var(--c-surface)]/40">
+									{#each row as cell, ci (ci)}
+										<td class="border border-[var(--c-border)] px-3 py-1.5 align-top">{cell}</td>
+									{/each}
+								</tr>
+							{/each}
+						</tbody>
+					</table>
+					<p class="mt-2 text-xs text-[var(--c-muted)]">
+						{table.rows.length - 1} row{table.rows.length === 2 ? '' : 's'} ·
+						delimiter “{table.delimiter === '\t' ? 'tab' : table.delimiter}”
+						{#if table.truncated}· preview truncated at 5,000 rows{/if}
+					</p>
+				</div>
 			{/if}
 		</div>
 	{/snippet}

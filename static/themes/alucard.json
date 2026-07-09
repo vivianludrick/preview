@@ -1,0 +1,23 @@
+{
+	"name": "Alucard",
+	"dark": false,
+	"colors": {
+		"bg": "#fffbeb",
+		"surface": "#f5f0dc",
+		"border": "#d8d3bd",
+		"fg": "#1f1f1f",
+		"muted": "#6e6a5e",
+		"accent": "#644ac9",
+		"accent-fg": "#fffbeb",
+		"selection": "#cfcfde",
+		"code-bg": "#f5f0dc",
+		"syn-keyword": "#a3144d",
+		"syn-string": "#14710a",
+		"syn-comment": "#9c9884",
+		"syn-function": "#644ac9",
+		"syn-number": "#a34d14",
+		"syn-heading": "#644ac9",
+		"syn-link": "#036a96",
+		"syn-emphasis": "#846e15"
+	}
+}

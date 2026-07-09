@@ -6,27 +6,21 @@
 	import ShareDialog from '$lib/components/ShareDialog.svelte';
 	import PasswordPrompt from '$lib/components/PasswordPrompt.svelte';
 	import UploadPanel from '$lib/components/UploadPanel.svelte';
-	import PdfPageCanvas from '$lib/previewers/pdf/PdfPageCanvas.svelte';
 	import { viewMode, shareHandler } from '$lib/stores/view';
 	import { PromptController } from '$lib/share/prompt.svelte';
 	import { saveFileContent, loadFileContent } from '$lib/storage';
-	import type { PDFDocumentProxy } from 'pdfjs-dist';
+	import type { Workbook } from '$lib/previewers/xlsx';
 
-	const EXT = 'pdf';
-
-	type PdfModule = typeof import('$lib/previewers/pdf');
+	const EXT = 'xlsx';
 
 	let fileBytes: Uint8Array | null = null;
 	let fileName = $state('');
-	let pdf: PDFDocumentProxy | null = $state(null);
-	let pdfMod: PdfModule | null = $state(null);
+	let workbook: Workbook | null = $state(null);
+	let activeSheet = $state(0);
 	let loading = $state(false);
 	let error = $state('');
 	let shareOpen = $state(false);
 	let destroyed = false;
-
-	let scroller: HTMLDivElement | undefined = $state();
-	let pageWidth = $state(720);
 
 	const prompts = new PromptController();
 
@@ -34,20 +28,16 @@
 		loading = true;
 		error = '';
 		try {
-			pdfMod ??= await import('$lib/previewers/pdf');
+			const mod = await import('$lib/previewers/xlsx');
 			if (destroyed) return;
-			const previous = pdf;
-			// pdf.js transfers the buffer → keep our copy for sharing, hand it a clone
-			const document = await pdfMod.loadPdf(bytes.slice());
+			const parsed = mod.parseWorkbook(bytes);
 			if (destroyed) return;
 			fileBytes = bytes;
 			fileName = name;
-			pdf = document;
-			void previous?.destroy();
-			// zoom-to-fit-width for the current pane
-			pageWidth = Math.max(320, Math.min((scroller?.clientWidth ?? 760) - 48, 1100));
+			workbook = parsed;
+			activeSheet = 0;
 		} catch {
-			error = 'Could not open this file as a PDF.';
+			error = 'Could not open this file as an XLSX workbook.';
 		} finally {
 			loading = false;
 		}
@@ -78,10 +68,10 @@
 				if (destroyed) return;
 				if (bytes === null) {
 					loading = false;
-					error = 'Password required to view this document. Reload the page to try again.';
+					error = 'Password required to view this workbook. Reload the page to try again.';
 					return;
 				}
-				await loadBytes(bytes, 'shared.pdf');
+				await loadBytes(bytes, 'shared.xlsx');
 			} catch (e) {
 				loading = false;
 				error = e instanceof Error ? e.message : 'Could not open this share link.';
@@ -91,46 +81,77 @@
 		return () => {
 			destroyed = true;
 			shareHandler.set(null);
-			void pdf?.destroy();
 		};
 	});
 </script>
 
 <svelte:head>
-	<title>preview.pdf — PDF previewer</title>
+	<title>preview.xlsx — Excel previewer</title>
 </svelte:head>
 
 <SplitLayout>
 	{#snippet editor()}
 		<UploadPanel
-			accept="application/pdf,.pdf"
-			label="Choose a PDF to preview"
-			hint="rendered locally, never uploaded"
+			accept=".xlsx,.xls,.ods,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+			label="Choose an XLSX to preview"
+			hint="parsed locally, never uploaded"
 			{fileName}
 			onfile={onUpload}
 		/>
 	{/snippet}
 	{#snippet preview()}
-		<div bind:this={scroller} class="h-full overflow-y-auto bg-[var(--c-surface)]">
+		<div class="flex h-full flex-col">
 			{#if error}
 				<div class="p-6 text-sm text-red-500" role="alert">{error}</div>
 			{:else if loading}
 				<div class="flex h-full items-center justify-center gap-2 text-[var(--c-muted)]">
 					<LoaderCircle size={18} class="animate-spin" aria-hidden="true" />
-					<span class="text-sm">Loading PDF…</span>
+					<span class="text-sm">Parsing workbook…</span>
 				</div>
-			{:else if pdf && pdfMod}
-				{#key pdf}
-					<div class="flex flex-col items-center gap-4 p-6">
-						{#each Array(pdf.numPages) as _, i (i)}
-							<PdfPageCanvas {pdf} pageNumber={i + 1} width={pageWidth} render={pdfMod.renderPage} />
-						{/each}
-						<p class="text-xs text-[var(--c-muted)]">{pdf.numPages} page{pdf.numPages === 1 ? '' : 's'}</p>
-					</div>
-				{/key}
+			{:else if workbook}
+				{@const sheet = workbook.sheets[activeSheet]}
+				<div
+					role="tablist"
+					aria-label="Sheets"
+					class="flex shrink-0 gap-1 overflow-x-auto border-b border-[var(--c-border)] bg-[var(--c-surface)] px-2 pt-2"
+				>
+					{#each workbook.sheets as s, i (i)}
+						<button
+							type="button"
+							role="tab"
+							aria-selected={i === activeSheet}
+							onclick={() => (activeSheet = i)}
+							class="rounded-t-lg border border-b-0 px-3 py-1.5 text-sm {i === activeSheet
+								? 'border-[var(--c-border)] bg-[var(--c-bg)] font-medium'
+								: 'border-transparent text-[var(--c-muted)] hover:text-[var(--c-fg)]'}"
+						>
+							{s.name}
+						</button>
+					{/each}
+				</div>
+				<div class="min-h-0 flex-1 overflow-auto p-4">
+					{#if sheet.rows.length === 0}
+						<p class="text-sm text-[var(--c-muted)]">This sheet is empty.</p>
+					{:else}
+						<table class="border-collapse text-sm">
+							<tbody>
+								{#each sheet.rows as row, ri (ri)}
+									<tr class={ri === 0 ? 'bg-[var(--c-surface)] font-semibold' : 'odd:bg-[var(--c-surface)]/40'}>
+										{#each row as cell, ci (ci)}
+											<td class="border border-[var(--c-border)] px-3 py-1.5 align-top">{cell}</td>
+										{/each}
+									</tr>
+								{/each}
+							</tbody>
+						</table>
+						{#if sheet.truncated}
+							<p class="mt-2 text-xs text-[var(--c-muted)]">Preview truncated at 2,000 rows.</p>
+						{/if}
+					{/if}
+				</div>
 			{:else}
 				<div class="flex h-full items-center justify-center p-6 text-center text-sm text-[var(--c-muted)]">
-					Upload a PDF on the left to preview it here.
+					Upload an XLSX on the left to preview the sheets here.
 				</div>
 			{/if}
 		</div>

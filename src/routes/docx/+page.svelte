@@ -6,27 +6,20 @@
 	import ShareDialog from '$lib/components/ShareDialog.svelte';
 	import PasswordPrompt from '$lib/components/PasswordPrompt.svelte';
 	import UploadPanel from '$lib/components/UploadPanel.svelte';
-	import PdfPageCanvas from '$lib/previewers/pdf/PdfPageCanvas.svelte';
 	import { viewMode, shareHandler } from '$lib/stores/view';
 	import { PromptController } from '$lib/share/prompt.svelte';
 	import { saveFileContent, loadFileContent } from '$lib/storage';
-	import type { PDFDocumentProxy } from 'pdfjs-dist';
 
-	const EXT = 'pdf';
-
-	type PdfModule = typeof import('$lib/previewers/pdf');
+	const EXT = 'docx';
 
 	let fileBytes: Uint8Array | null = null;
 	let fileName = $state('');
-	let pdf: PDFDocumentProxy | null = $state(null);
-	let pdfMod: PdfModule | null = $state(null);
+	let rendered = $state('');
+	let hasDocument = $state(false);
 	let loading = $state(false);
 	let error = $state('');
 	let shareOpen = $state(false);
 	let destroyed = false;
-
-	let scroller: HTMLDivElement | undefined = $state();
-	let pageWidth = $state(720);
 
 	const prompts = new PromptController();
 
@@ -34,20 +27,15 @@
 		loading = true;
 		error = '';
 		try {
-			pdfMod ??= await import('$lib/previewers/pdf');
+			const mod = await import('$lib/previewers/docx');
 			if (destroyed) return;
-			const previous = pdf;
-			// pdf.js transfers the buffer → keep our copy for sharing, hand it a clone
-			const document = await pdfMod.loadPdf(bytes.slice());
+			rendered = await mod.renderDocx(bytes);
 			if (destroyed) return;
 			fileBytes = bytes;
 			fileName = name;
-			pdf = document;
-			void previous?.destroy();
-			// zoom-to-fit-width for the current pane
-			pageWidth = Math.max(320, Math.min((scroller?.clientWidth ?? 760) - 48, 1100));
+			hasDocument = true;
 		} catch {
-			error = 'Could not open this file as a PDF.';
+			error = 'Could not open this file as a DOCX document.';
 		} finally {
 			loading = false;
 		}
@@ -81,7 +69,7 @@
 					error = 'Password required to view this document. Reload the page to try again.';
 					return;
 				}
-				await loadBytes(bytes, 'shared.pdf');
+				await loadBytes(bytes, 'shared.docx');
 			} catch (e) {
 				loading = false;
 				error = e instanceof Error ? e.message : 'Could not open this share link.';
@@ -91,46 +79,41 @@
 		return () => {
 			destroyed = true;
 			shareHandler.set(null);
-			void pdf?.destroy();
 		};
 	});
 </script>
 
 <svelte:head>
-	<title>preview.pdf — PDF previewer</title>
+	<title>preview.docx — Word previewer</title>
 </svelte:head>
 
 <SplitLayout>
 	{#snippet editor()}
 		<UploadPanel
-			accept="application/pdf,.pdf"
-			label="Choose a PDF to preview"
-			hint="rendered locally, never uploaded"
+			accept=".docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+			label="Choose a DOCX to preview"
+			hint="converted locally, never uploaded"
 			{fileName}
 			onfile={onUpload}
 		/>
 	{/snippet}
 	{#snippet preview()}
-		<div bind:this={scroller} class="h-full overflow-y-auto bg-[var(--c-surface)]">
+		<div class="h-full overflow-y-auto">
 			{#if error}
 				<div class="p-6 text-sm text-red-500" role="alert">{error}</div>
 			{:else if loading}
 				<div class="flex h-full items-center justify-center gap-2 text-[var(--c-muted)]">
 					<LoaderCircle size={18} class="animate-spin" aria-hidden="true" />
-					<span class="text-sm">Loading PDF…</span>
+					<span class="text-sm">Converting document…</span>
 				</div>
-			{:else if pdf && pdfMod}
-				{#key pdf}
-					<div class="flex flex-col items-center gap-4 p-6">
-						{#each Array(pdf.numPages) as _, i (i)}
-							<PdfPageCanvas {pdf} pageNumber={i + 1} width={pageWidth} render={pdfMod.renderPage} />
-						{/each}
-						<p class="text-xs text-[var(--c-muted)]">{pdf.numPages} page{pdf.numPages === 1 ? '' : 's'}</p>
-					</div>
-				{/key}
+			{:else if hasDocument}
+				<article class="md-preview mx-auto max-w-3xl px-6 py-6">
+					<!-- eslint-disable-next-line svelte/no-at-html-tags — sanitized by DOMPurify in previewers/docx -->
+					{@html rendered}
+				</article>
 			{:else}
 				<div class="flex h-full items-center justify-center p-6 text-center text-sm text-[var(--c-muted)]">
-					Upload a PDF on the left to preview it here.
+					Upload a DOCX on the left to preview it here.
 				</div>
 			{/if}
 		</div>

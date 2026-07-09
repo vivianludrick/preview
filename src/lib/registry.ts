@@ -32,5 +32,33 @@ export const registry: PreviewerInfo[] = [
 		description: 'View PPTX slides with navigation arrows and a thumbnail filmstrip.',
 		keywords: ['ppt', 'pptx', 'powerpoint', 'slides', 'presentation', 'deck'],
 		upload: true
+	},
+	{
+		ext: 'csv',
+		name: 'CSV',
+		description: 'Edit comma/tab-separated text and preview it as a clean table.',
+		keywords: ['csv', 'tsv', 'table', 'spreadsheet', 'data', 'comma'],
+		upload: false
+	},
+	{
+		ext: 'html',
+		name: 'HTML',
+		description: 'Write HTML and see it live in a sandboxed frame — scripts included.',
+		keywords: ['html', 'web', 'page', 'iframe', 'css', 'javascript'],
+		upload: false
+	},
+	{
+		ext: 'docx',
+		name: 'Word',
+		description: 'Read DOCX documents converted to clean HTML, entirely in your browser.',
+		keywords: ['docx', 'word', 'document', 'doc', 'office'],
+		upload: true
+	},
+	{
+		ext: 'xlsx',
+		name: 'Excel',
+		description: 'Browse XLSX workbooks sheet by sheet as tables.',
+		keywords: ['xlsx', 'xls', 'excel', 'spreadsheet', 'workbook', 'sheets'],
+		upload: true
 	}
 ];

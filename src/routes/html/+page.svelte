@@ -1,7 +1,6 @@
 <script lang="ts">
 	import { onMount, tick } from 'svelte';
 	import { page } from '$app/stores';
-	import { LoaderCircle } from 'lucide-svelte';
 	import SplitLayout from '$lib/components/SplitLayout.svelte';
 	import ShareDialog from '$lib/components/ShareDialog.svelte';
 	import PasswordPrompt from '$lib/components/PasswordPrompt.svelte';
@@ -9,35 +8,29 @@
 	import { viewMode, shareHandler } from '$lib/stores/view';
 	import { PromptController } from '$lib/share/prompt.svelte';
 	import { saveTextContent, loadTextContent } from '$lib/storage';
-	import { SAMPLE_DOCUMENT } from '$lib/previewers/markdown/sample';
+	import { SAMPLE_HTML } from '$lib/previewers/html/sample';
 	import type { EditorView } from '$lib/editor/base';
 
-	const EXT = 'md';
+	const EXT = 'html';
 
-	let content = $state(SAMPLE_DOCUMENT);
+	let content = $state(SAMPLE_HTML);
 	let rendered = $state('');
-	let rendererReady = $state(false);
 	let receiveError = $state('');
 	let receiveCancelled = $state(false);
 	let shareOpen = $state(false);
 
-	let renderMarkdown: ((s: string) => string) | null = null;
 	let editorHost: HTMLDivElement | undefined = $state();
 	let editorView: EditorView | null = $state(null);
 	let editorReady = $state(false);
 
 	const prompts = new PromptController();
 
-	// re-render per keystroke, debounced so multi-thousand-line docs stay smooth
 	let renderTimer: ReturnType<typeof setTimeout> | undefined;
 	function scheduleRender() {
 		clearTimeout(renderTimer);
-		renderTimer = setTimeout(() => {
-			if (renderMarkdown) rendered = renderMarkdown(content);
-		}, 120);
+		renderTimer = setTimeout(() => (rendered = content), 250);
 	}
 
-	// excalidraw-style: the raw document is always recoverable from localStorage
 	let saveTimer: ReturnType<typeof setTimeout> | undefined;
 	function schedulePersist() {
 		clearTimeout(saveTimer);
@@ -56,7 +49,6 @@
 		let destroyed = false;
 
 		(async () => {
-			// receiver path: content arrives inside the URL, default to Preview mode
 			const data = $page.url.searchParams.get('data');
 			if (data) {
 				viewMode.set('preview');
@@ -76,16 +68,10 @@
 				const stored = loadTextContent(EXT);
 				if (stored !== null) content = stored;
 			}
+			rendered = content;
 
-			// page shell is already interactive; previewer + editor load in the background
-			const render = await import('$lib/previewers/markdown/render');
-			if (destroyed) return;
-			renderMarkdown = render.renderMarkdown;
-			rendered = renderMarkdown(content);
-			rendererReady = true;
-
-			const ed = await import('$lib/previewers/markdown/editor');
-			await tick(); // make sure the editor host is in the DOM
+			const ed = await import('$lib/previewers/html/editor');
+			await tick();
 			if (destroyed || !editorHost) return;
 			editorView = ed.createEditor(editorHost, content, onEdit);
 			editorReady = true;
@@ -102,18 +88,17 @@
 </script>
 
 <svelte:head>
-	<title>preview.md — markdown previewer</title>
+	<title>preview.html — HTML previewer</title>
 </svelte:head>
 
 <SplitLayout>
 	{#snippet editor()}
 		<div class="relative h-full">
-			<!-- plain textarea keeps typing possible while CodeMirror loads in the background -->
 			<textarea
 				class="h-full w-full resize-none bg-[var(--c-bg)] p-3 font-mono text-sm text-[var(--c-fg)] focus:outline-none {editorReady
 					? 'hidden'
 					: ''}"
-				aria-label="Markdown source"
+				aria-label="HTML source"
 				bind:value={content}
 				oninput={() => {
 					scheduleRender();
@@ -125,23 +110,21 @@
 		</div>
 	{/snippet}
 	{#snippet preview()}
-		<div class="h-full overflow-y-auto">
+		<div class="h-full">
 			{#if receiveError}
 				<div class="p-6 text-sm text-red-500" role="alert">{receiveError}</div>
 			{:else if receiveCancelled}
 				<div class="p-6 text-sm text-[var(--c-muted)]">
 					Password required to view this document. Reload the page to try again.
 				</div>
-			{:else if !rendererReady}
-				<div class="flex h-full items-center justify-center gap-2 text-[var(--c-muted)]">
-					<LoaderCircle size={18} class="animate-spin" aria-hidden="true" />
-					<span class="text-sm">Loading preview…</span>
-				</div>
 			{:else}
-				<article class="md-preview mx-auto max-w-3xl px-6 py-6">
-					<!-- eslint-disable-next-line svelte/no-at-html-tags — sanitized by DOMPurify in render.ts -->
-					{@html rendered}
-				</article>
+				<!-- scripts may run, but sandbox (no allow-same-origin) isolates them from this site -->
+				<iframe
+					title="HTML preview"
+					sandbox="allow-scripts allow-popups allow-forms allow-modals"
+					srcdoc={rendered}
+					class="h-full w-full border-0 bg-white"
+				></iframe>
 			{/if}
 		</div>
 	{/snippet}

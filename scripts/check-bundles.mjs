@@ -21,7 +21,11 @@ const PAGES = {
 	'/': 'index.html',
 	'/md/': 'md/index.html',
 	'/pdf/': 'pdf/index.html',
-	'/ppt/': 'ppt/index.html'
+	'/ppt/': 'ppt/index.html',
+	'/csv/': 'csv/index.html',
+	'/html/': 'html/index.html',
+	'/docx/': 'docx/index.html',
+	'/xlsx/': 'xlsx/index.html'
 };
 
 // distinctive content markers for each heavy, route-specific dependency
@@ -29,7 +33,9 @@ const MARKERS = {
 	'pdfjs-dist': /GlobalWorkerOptions/,
 	jszip: /JSZip/,
 	codemirror: /cm-content/,
-	'highlight.js': /\bhljs\b/
+	'highlight.js': /\bhljs\b/,
+	mammoth: /convertToHtml/,
+	xlsx: /sheet_to_json/
 };
 
 function findAppDir() {

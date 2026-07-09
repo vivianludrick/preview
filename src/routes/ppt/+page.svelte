@@ -9,7 +9,10 @@
 	import SlideView from '$lib/previewers/ppt/SlideView.svelte';
 	import { viewMode, shareHandler } from '$lib/stores/view';
 	import { PromptController } from '$lib/share/prompt.svelte';
+	import { saveFileContent, loadFileContent } from '$lib/storage';
 	import type { Deck } from '$lib/previewers/ppt/types';
+
+	const EXT = 'ppt';
 
 	let fileBytes: Uint8Array | null = null;
 	let fileName = $state('');
@@ -48,7 +51,9 @@
 	}
 
 	async function onUpload(file: File) {
-		loadBytes(new Uint8Array(await file.arrayBuffer()), file.name);
+		const bytes = new Uint8Array(await file.arrayBuffer());
+		await loadBytes(bytes, file.name);
+		if (!error) saveFileContent(EXT, file.name, bytes);
 	}
 
 	function go(delta: number) {
@@ -70,7 +75,11 @@
 
 		(async () => {
 			const data = $page.url.searchParams.get('data');
-			if (!data) return;
+			if (!data) {
+				const stored = loadFileContent(EXT);
+				if (stored) await loadBytes(stored.bytes, stored.name);
+				return;
+			}
 			viewMode.set('preview');
 			loading = true;
 			try {

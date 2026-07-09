@@ -1,5 +1,15 @@
 <script lang="ts">
-	import { Search, FileText, FileType, Presentation, ArrowRight } from 'lucide-svelte';
+	import {
+		Search,
+		FileText,
+		FileType,
+		Presentation,
+		Table,
+		Code,
+		BookOpen,
+		FileSpreadsheet,
+		ArrowRight
+	} from 'lucide-svelte';
 	import { goto } from '$app/navigation';
 	import { base } from '$app/paths';
 	import { registry } from '$lib/registry';
@@ -10,8 +20,24 @@
 	const icons: Record<string, typeof FileText> = {
 		md: FileText,
 		pdf: FileType,
-		ppt: Presentation
+		ppt: Presentation,
+		csv: Table,
+		html: Code,
+		docx: BookOpen,
+		xlsx: FileSpreadsheet
 	};
+
+	// randomly-sprinkled supported extensions (sketch) — hand-placed so they
+	// never collide with the centered content, each linking to its previewer
+	const scattered: { ext: string; style: string }[] = [
+		{ ext: 'md', style: 'top: 24%; left: 10%; transform: rotate(-8deg)' },
+		{ ext: 'csv', style: 'top: 11%; left: 34%; transform: rotate(4deg)' },
+		{ ext: 'html', style: 'top: 16%; right: 12%; transform: rotate(7deg)' },
+		{ ext: 'pdf', style: 'top: 48%; left: 6%; transform: rotate(3deg)' },
+		{ ext: 'ppt', style: 'top: 42%; right: 7%; transform: rotate(-6deg)' },
+		{ ext: 'docx', style: 'bottom: 20%; left: 16%; transform: rotate(6deg)' },
+		{ ext: 'xlsx', style: 'bottom: 13%; right: 17%; transform: rotate(-4deg)' }
+	];
 
 	const results = $derived.by(() => {
 		const q = query.trim().toLowerCase();
@@ -50,20 +76,37 @@
 	<title>preview — client-side file previewer</title>
 	<meta
 		name="description"
-		content="Preview markdown, PDF and PPTX files entirely in your browser. Share via self-contained, optionally encrypted links. No server, no uploads, no tracking."
+		content="Preview markdown, CSV, HTML, PDF, PPTX, DOCX and XLSX entirely in your browser. Share via self-contained, optionally encrypted links. No server, no uploads, no tracking."
 	/>
 </svelte:head>
 
-<div class="h-full overflow-y-auto">
-	<div class="mx-auto flex max-w-2xl flex-col items-center gap-8 px-6 py-16">
-		<div class="text-center">
-			<h1 class="text-4xl font-bold tracking-tight">
-				preview<span class="text-[var(--c-accent)]">.anything</span>
+<div class="relative h-full overflow-y-auto">
+	<!-- sprinkled extensions -->
+	{#each scattered as s (s.ext)}
+		<a
+			href="{base}/{s.ext}/"
+			style={s.style}
+			class="absolute hidden font-mono text-lg text-[var(--c-muted)] opacity-60 transition hover:scale-110 hover:text-[var(--c-accent)] hover:opacity-100 md:block"
+		>
+			.{s.ext}
+		</a>
+	{/each}
+
+	<div class="mx-auto flex min-h-full max-w-xl flex-col items-center justify-center gap-8 px-6 py-16">
+		<!-- easter egg: this hero is a live HTML "preview" — click and edit it -->
+		<div
+			contenteditable="true"
+			spellcheck="false"
+			aria-label="Editable introduction — a little easter egg"
+			class="text-center caret-[var(--c-accent)] outline-none [&:focus_h1]:opacity-90"
+		>
+			<h1 class="text-6xl font-bold tracking-tight">
+				preview<span class="text-[var(--c-accent)]">*</span>
 			</h1>
 			<p class="mt-4 leading-relaxed text-[var(--c-muted)]">
-				Type or upload on the left, see it rendered on the right — entirely in your browser.
-				Nothing is ever uploaded. Share documents as self-contained links: the content is
-				compressed (and optionally AES-encrypted) <em>into the URL itself</em>.
+				Render files entirely in your browser and share them as self-contained links —
+				<br class="hidden sm:block" />
+				no server, no uploads, no tracking. <span class="opacity-60">(psst — you can edit this text.)</span>
 			</p>
 		</div>
 
@@ -74,7 +117,7 @@
 				<Search size={18} class="shrink-0 text-[var(--c-muted)]" aria-hidden="true" />
 				<input
 					type="search"
-					placeholder="Search previewers… (markdown, pdf, slides)"
+					placeholder="file type…"
 					aria-label="Search previewers"
 					bind:value={query}
 					onkeydown={onKeydown}
@@ -90,18 +133,18 @@
 							type="button"
 							onclick={() => open(p.ext)}
 							onmouseenter={() => (active = i)}
-							class="flex w-full items-center gap-3 rounded-xl border px-4 py-3 text-left transition-colors {i ===
+							class="flex w-full items-center gap-3 rounded-xl border px-4 py-2.5 text-left transition-colors {i ===
 							active
 								? 'border-[var(--c-accent)] bg-[var(--c-surface)]'
 								: 'border-[var(--c-border)]'}"
 						>
-							<Icon size={20} class="shrink-0 text-[var(--c-accent)]" aria-hidden="true" />
+							<Icon size={18} class="shrink-0 text-[var(--c-accent)]" aria-hidden="true" />
 							<span class="min-w-0 flex-1">
 								<span class="font-medium">{p.name}</span>
 								<span class="ml-1.5 font-mono text-xs text-[var(--c-muted)]">/{p.ext}</span>
 								<span class="block truncate text-sm text-[var(--c-muted)]">{p.description}</span>
 							</span>
-							<ArrowRight size={16} class="shrink-0 text-[var(--c-muted)]" aria-hidden="true" />
+							<ArrowRight size={15} class="shrink-0 text-[var(--c-muted)]" aria-hidden="true" />
 						</button>
 					</li>
 				{:else}
@@ -109,10 +152,5 @@
 				{/each}
 			</ul>
 		</div>
-
-		<p class="max-w-md text-center text-xs leading-relaxed text-[var(--c-muted)]">
-			Zero server · zero telemetry · zero CDN. The only network request this site ever makes on
-			your behalf is the optional, user-initiated link shortening.
-		</p>
 	</div>
 </div>

@@ -1,0 +1,23 @@
+{
+	"name": "Catppuccin Macchiato",
+	"dark": true,
+	"colors": {
+		"bg": "#24273a",
+		"surface": "#1e2030",
+		"border": "#363a4f",
+		"fg": "#cad3f5",
+		"muted": "#a5adcb",
+		"accent": "#8aadf4",
+		"accent-fg": "#24273a",
+		"selection": "#494d64",
+		"code-bg": "#181926",
+		"syn-keyword": "#c6a0f6",
+		"syn-string": "#a6da95",
+		"syn-comment": "#6e738d",
+		"syn-function": "#8aadf4",
+		"syn-number": "#f5a97f",
+		"syn-heading": "#8aadf4",
+		"syn-link": "#7dc4e4",
+		"syn-emphasis": "#eed49f"
+	}
+}

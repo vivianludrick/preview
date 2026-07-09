@@ -13,10 +13,16 @@ export const themes: ThemeInfo[] = [
 	{ id: 'light', label: 'Light', dark: false },
 	{ id: 'dark', label: 'Dark', dark: true },
 	{ id: 'catppuccin-latte', label: 'Catppuccin Latte', dark: false },
+	{ id: 'catppuccin-frappe', label: 'Catppuccin Frappé', dark: true },
+	{ id: 'catppuccin-macchiato', label: 'Catppuccin Macchiato', dark: true },
 	{ id: 'catppuccin-mocha', label: 'Catppuccin Mocha', dark: true },
 	{ id: 'rose-pine', label: 'Rosé Pine', dark: true },
+	{ id: 'rose-pine-moon', label: 'Rosé Pine Moon', dark: true },
 	{ id: 'rose-pine-dawn', label: 'Rosé Pine Dawn', dark: false },
-	{ id: 'dracula', label: 'Dracula', dark: true }
+	{ id: 'dracula', label: 'Dracula', dark: true },
+	{ id: 'alucard', label: 'Alucard', dark: false },
+	{ id: 'gruvbox-dark', label: 'Gruvbox Dark', dark: true },
+	{ id: 'gruvbox-light', label: 'Gruvbox Light', dark: false }
 ];
 
 const STORAGE_THEME = 'preview:theme';
@@ -27,7 +33,9 @@ const STORAGE_COLORS = 'preview:colors';
 export const theme = writable<string>('light');
 
 function systemThemeId(): string {
-	return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+	return window.matchMedia('(prefers-color-scheme: dark)').matches
+		? 'catppuccin-macchiato'
+		: 'catppuccin-latte';
 }
 
 function applyColors(colors: Record<string, string>, dark: boolean) {

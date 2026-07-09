@@ -1,0 +1,23 @@
+{
+	"name": "Catppuccin Frappé",
+	"dark": true,
+	"colors": {
+		"bg": "#303446",
+		"surface": "#292c3c",
+		"border": "#414559",
+		"fg": "#c6d0f5",
+		"muted": "#a5adce",
+		"accent": "#8caaee",
+		"accent-fg": "#303446",
+		"selection": "#51576d",
+		"code-bg": "#232634",
+		"syn-keyword": "#ca9ee6",
+		"syn-string": "#a6d189",
+		"syn-comment": "#737994",
+		"syn-function": "#8caaee",
+		"syn-number": "#ef9f76",
+		"syn-heading": "#8caaee",
+		"syn-link": "#85c1dc",
+		"syn-emphasis": "#e5c890"
+	}
+}

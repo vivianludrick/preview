@@ -7,44 +7,45 @@
  * applied; the inline bootstrap script in app.html restores the cached palette
  * and dark class, and stores/theme.ts fetches the full JSON afterwards.
  */
+/* first-paint fallbacks match the system defaults: Catppuccin Latte / Macchiato */
 :root {
-	--c-bg: #ffffff;
-	--c-surface: #f6f8fa;
-	--c-border: #d0d7de;
-	--c-fg: #1f2328;
-	--c-muted: #656d76;
-	--c-accent: #0969da;
-	--c-accent-fg: #ffffff;
-	--c-selection: #ddf4ff;
-	--c-code-bg: #f6f8fa;
-	--c-syn-keyword: #cf222e;
-	--c-syn-string: #0a3069;
-	--c-syn-comment: #6e7781;
-	--c-syn-function: #8250df;
-	--c-syn-number: #0550ae;
-	--c-syn-heading: #0969da;
-	--c-syn-link: #0969da;
-	--c-syn-emphasis: #953800;
+	--c-bg: #eff1f5;
+	--c-surface: #e6e9ef;
+	--c-border: #ccd0da;
+	--c-fg: #4c4f69;
+	--c-muted: #6c6f85;
+	--c-accent: #1e66f5;
+	--c-accent-fg: #eff1f5;
+	--c-selection: #ccd0da;
+	--c-code-bg: #e6e9ef;
+	--c-syn-keyword: #8839ef;
+	--c-syn-string: #40a02b;
+	--c-syn-comment: #9ca0b0;
+	--c-syn-function: #1e66f5;
+	--c-syn-number: #fe640b;
+	--c-syn-heading: #1e66f5;
+	--c-syn-link: #209fb5;
+	--c-syn-emphasis: #df8e1d;
 }
 
 .dark {
-	--c-bg: #0d1117;
-	--c-surface: #161b22;
-	--c-border: #30363d;
-	--c-fg: #e6edf3;
-	--c-muted: #8d96a0;
-	--c-accent: #4493f8;
-	--c-accent-fg: #0d1117;
-	--c-selection: #16335688;
-	--c-code-bg: #161b22;
-	--c-syn-keyword: #ff7b72;
-	--c-syn-string: #a5d6ff;
-	--c-syn-comment: #8b949e;
-	--c-syn-function: #d2a8ff;
-	--c-syn-number: #79c0ff;
-	--c-syn-heading: #4493f8;
-	--c-syn-link: #4493f8;
-	--c-syn-emphasis: #ffa657;
+	--c-bg: #24273a;
+	--c-surface: #1e2030;
+	--c-border: #363a4f;
+	--c-fg: #cad3f5;
+	--c-muted: #a5adcb;
+	--c-accent: #8aadf4;
+	--c-accent-fg: #24273a;
+	--c-selection: #494d64;
+	--c-code-bg: #181926;
+	--c-syn-keyword: #c6a0f6;
+	--c-syn-string: #a6da95;
+	--c-syn-comment: #6e738d;
+	--c-syn-function: #8aadf4;
+	--c-syn-number: #f5a97f;
+	--c-syn-heading: #8aadf4;
+	--c-syn-link: #7dc4e4;
+	--c-syn-emphasis: #eed49f;
 }
 
 html,
