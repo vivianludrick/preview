@@ -1,6 +1,16 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+
+/* Tailwind v4 defaults `dark:` to prefers-color-scheme; the app drives dark
+   mode with a class set from the theme store, so keep the class strategy. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* v4's preflight zeroes <dialog> margins — restore the UA's centering
+   for the settings/share/password modals */
+@layer base {
+	dialog {
+		margin: auto;
+	}
+}
 
 /* present mode: a fullscreened preview pane keeps the theme background
    instead of the UA's black backdrop */
