@@ -1,0 +1,23 @@
+{
+	"name": "Rosé Pine Dawn",
+	"dark": false,
+	"colors": {
+		"bg": "#faf4ed",
+		"surface": "#fffaf3",
+		"border": "#f2e9e1",
+		"fg": "#575279",
+		"muted": "#797593",
+		"accent": "#907aa9",
+		"accent-fg": "#faf4ed",
+		"selection": "#dfdad9",
+		"code-bg": "#fffaf3",
+		"syn-keyword": "#286983",
+		"syn-string": "#ea9d34",
+		"syn-comment": "#9893a5",
+		"syn-function": "#d7827e",
+		"syn-number": "#907aa9",
+		"syn-heading": "#907aa9",
+		"syn-link": "#56949f",
+		"syn-emphasis": "#ea9d34"
+	}
+}

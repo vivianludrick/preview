@@ -1,0 +1,23 @@
+{
+	"name": "Light",
+	"dark": false,
+	"colors": {
+		"bg": "#ffffff",
+		"surface": "#f6f8fa",
+		"border": "#d0d7de",
+		"fg": "#1f2328",
+		"muted": "#656d76",
+		"accent": "#0969da",
+		"accent-fg": "#ffffff",
+		"selection": "#ddf4ff",
+		"code-bg": "#f6f8fa",
+		"syn-keyword": "#cf222e",
+		"syn-string": "#0a3069",
+		"syn-comment": "#6e7781",
+		"syn-function": "#8250df",
+		"syn-number": "#0550ae",
+		"syn-heading": "#0969da",
+		"syn-link": "#0969da",
+		"syn-emphasis": "#953800"
+	}
+}

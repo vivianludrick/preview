@@ -1,0 +1,23 @@
+{
+	"name": "Dark",
+	"dark": true,
+	"colors": {
+		"bg": "#0d1117",
+		"surface": "#161b22",
+		"border": "#30363d",
+		"fg": "#e6edf3",
+		"muted": "#8d96a0",
+		"accent": "#4493f8",
+		"accent-fg": "#0d1117",
+		"selection": "#16335688",
+		"code-bg": "#161b22",
+		"syn-keyword": "#ff7b72",
+		"syn-string": "#a5d6ff",
+		"syn-comment": "#8b949e",
+		"syn-function": "#d2a8ff",
+		"syn-number": "#79c0ff",
+		"syn-heading": "#4493f8",
+		"syn-link": "#4493f8",
+		"syn-emphasis": "#ffa657"
+	}
+}

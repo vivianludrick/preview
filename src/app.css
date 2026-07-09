@@ -1,0 +1,245 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * Theme variables. Defaults below cover the first paint before a theme JSON is
+ * applied; the inline bootstrap script in app.html restores the cached palette
+ * and dark class, and stores/theme.ts fetches the full JSON afterwards.
+ */
+:root {
+	--c-bg: #ffffff;
+	--c-surface: #f6f8fa;
+	--c-border: #d0d7de;
+	--c-fg: #1f2328;
+	--c-muted: #656d76;
+	--c-accent: #0969da;
+	--c-accent-fg: #ffffff;
+	--c-selection: #ddf4ff;
+	--c-code-bg: #f6f8fa;
+	--c-syn-keyword: #cf222e;
+	--c-syn-string: #0a3069;
+	--c-syn-comment: #6e7781;
+	--c-syn-function: #8250df;
+	--c-syn-number: #0550ae;
+	--c-syn-heading: #0969da;
+	--c-syn-link: #0969da;
+	--c-syn-emphasis: #953800;
+}
+
+.dark {
+	--c-bg: #0d1117;
+	--c-surface: #161b22;
+	--c-border: #30363d;
+	--c-fg: #e6edf3;
+	--c-muted: #8d96a0;
+	--c-accent: #4493f8;
+	--c-accent-fg: #0d1117;
+	--c-selection: #16335688;
+	--c-code-bg: #161b22;
+	--c-syn-keyword: #ff7b72;
+	--c-syn-string: #a5d6ff;
+	--c-syn-comment: #8b949e;
+	--c-syn-function: #d2a8ff;
+	--c-syn-number: #79c0ff;
+	--c-syn-heading: #4493f8;
+	--c-syn-link: #4493f8;
+	--c-syn-emphasis: #ffa657;
+}
+
+html,
+body {
+	height: 100%;
+	background: var(--c-bg);
+	color: var(--c-fg);
+}
+
+/* ---------- rendered-markdown typography (theme-variable driven) ---------- */
+
+.md-preview {
+	font-size: 15px;
+	line-height: 1.65;
+	word-wrap: break-word;
+}
+.md-preview > *:first-child {
+	margin-top: 0;
+}
+.md-preview h1,
+.md-preview h2,
+.md-preview h3,
+.md-preview h4,
+.md-preview h5,
+.md-preview h6 {
+	color: var(--c-syn-heading);
+	font-weight: 650;
+	margin: 1.4em 0 0.5em;
+	line-height: 1.25;
+}
+.md-preview h1 {
+	font-size: 1.9em;
+	border-bottom: 1px solid var(--c-border);
+	padding-bottom: 0.25em;
+}
+.md-preview h2 {
+	font-size: 1.5em;
+	border-bottom: 1px solid var(--c-border);
+	padding-bottom: 0.25em;
+}
+.md-preview h3 {
+	font-size: 1.25em;
+}
+.md-preview h4 {
+	font-size: 1.05em;
+}
+.md-preview p,
+.md-preview ul,
+.md-preview ol,
+.md-preview table,
+.md-preview blockquote,
+.md-preview pre {
+	margin: 0 0 1em;
+}
+.md-preview ul,
+.md-preview ol {
+	padding-left: 1.75em;
+}
+.md-preview ul {
+	list-style: disc;
+}
+.md-preview ol {
+	list-style: decimal;
+}
+.md-preview li + li {
+	margin-top: 0.2em;
+}
+.md-preview ul.contains-task-list {
+	list-style: none;
+	padding-left: 0.5em;
+}
+.md-preview .task-list-item input {
+	margin-right: 0.5em;
+	accent-color: var(--c-accent);
+}
+.md-preview a {
+	color: var(--c-syn-link);
+	text-decoration: underline;
+	text-underline-offset: 2px;
+}
+.md-preview strong {
+	font-weight: 700;
+}
+.md-preview em {
+	color: var(--c-syn-emphasis);
+}
+.md-preview blockquote {
+	border-left: 4px solid var(--c-border);
+	color: var(--c-muted);
+	padding: 0.1em 1em;
+}
+.md-preview code {
+	background: var(--c-code-bg);
+	border: 1px solid var(--c-border);
+	border-radius: 4px;
+	padding: 0.1em 0.35em;
+	font-size: 0.9em;
+	font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+.md-preview pre {
+	background: var(--c-code-bg);
+	border: 1px solid var(--c-border);
+	border-radius: 8px;
+	padding: 0.85em 1em;
+	overflow-x: auto;
+}
+.md-preview pre code {
+	background: transparent;
+	border: none;
+	padding: 0;
+	font-size: 0.875em;
+	line-height: 1.55;
+}
+.md-preview table {
+	border-collapse: collapse;
+	display: block;
+	max-width: 100%;
+	overflow-x: auto;
+}
+.md-preview th,
+.md-preview td {
+	border: 1px solid var(--c-border);
+	padding: 0.35em 0.8em;
+}
+.md-preview th {
+	background: var(--c-surface);
+	font-weight: 600;
+}
+.md-preview hr {
+	border: none;
+	border-top: 1px solid var(--c-border);
+	margin: 1.5em 0;
+}
+.md-preview img {
+	max-width: 100%;
+}
+.md-preview del {
+	color: var(--c-muted);
+}
+
+/* ---------- highlight.js token colors, driven by the same theme variables ---------- */
+
+.hljs {
+	color: var(--c-fg);
+}
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-meta .hljs-keyword,
+.hljs-doctag,
+.hljs-section,
+.hljs-tag {
+	color: var(--c-syn-keyword);
+}
+.hljs-string,
+.hljs-regexp,
+.hljs-addition,
+.hljs-attribute,
+.hljs-meta .hljs-string {
+	color: var(--c-syn-string);
+}
+.hljs-comment,
+.hljs-code,
+.hljs-formula {
+	color: var(--c-syn-comment);
+	font-style: italic;
+}
+.hljs-title,
+.hljs-title.class_,
+.hljs-title.function_,
+.hljs-built_in,
+.hljs-name {
+	color: var(--c-syn-function);
+}
+.hljs-number,
+.hljs-literal,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-attr,
+.hljs-template-variable,
+.hljs-variable,
+.hljs-selector-attr,
+.hljs-selector-class,
+.hljs-selector-id {
+	color: var(--c-syn-number);
+}
+.hljs-emphasis {
+	font-style: italic;
+}
+.hljs-strong {
+	font-weight: 700;
+}
+.hljs-link {
+	color: var(--c-syn-link);
+	text-decoration: underline;
+}
+.hljs-deletion {
+	color: var(--c-syn-keyword);
+}

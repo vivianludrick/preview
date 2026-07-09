@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" href="%sveltekit.assets%/favicon.svg" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<script>
+			// Theme bootstrap: set the dark class + cached palette before first paint (no flash).
+			(function () {
+				try {
+					var dark = localStorage.getItem('preview:dark');
+					if (dark === null) {
+						dark = window.matchMedia('(prefers-color-scheme: dark)').matches ? '1' : '0';
+					}
+					if (dark === '1') document.documentElement.classList.add('dark');
+					var cached = localStorage.getItem('preview:colors');
+					if (cached) {
+						var colors = JSON.parse(cached);
+						for (var k in colors) {
+							document.documentElement.style.setProperty('--c-' + k, colors[k]);
+						}
+					}
+				} catch (e) {
+					/* first paint falls back to the CSS defaults */
+				}
+			})();
+		</script>
+		%sveltekit.head%
+	</head>
+	<body data-sveltekit-preload-data="hover">
+		<div style="display: contents">%sveltekit.body%</div>
+	</body>
+</html>

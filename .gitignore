@@ -1,0 +1,9 @@
+node_modules
+/build
+/.svelte-kit
+/dist
+.DS_Store
+*.local
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*
+.claude/
